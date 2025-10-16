@@ -1,0 +1,44 @@
+clear; clc;
+
+% System parameters
+tau = 19; % model parameter [s]
+mu = 60; % model parameter [km^2/h]
+C_r = 2000; % on-ramp capacity [veh/h]
+rho_m = 120; % [veh/kmlane]
+alpha = 0.1; % non-compliance of drivers to speed limit shown [-]
+K = 40; % model parameter [veh/kmlane]
+a = 1.867; % model parameter [-]
+v_f = 120; % free-flow speed that cars reach in steady state in low density freeway [km/h]
+E_1 = 5; % parameter based on student IDs
+rho_c = 33 + E_1/3; % critical density [veh/kmlane]
+T = 10; % Sampling time for r(k) [s]
+T_c = 60; % Control signal sampling time [s]
+D_r = 1500; % ramp demand [veh(h)]
+
+% Initialize state variables
+V = zeros(1, 6); % Velocity states
+rho = zeros(1, 6); % Density states
+w_r = 0; % Ramp flow states
+
+% Define functions
+q_r5 = @(r, w_r, rho) min(r*k, D_r + w_r/T, C_r*((rho_m-rho(5))/(rho_m-rho_c)));
+
+function V_i = V_i(i, V_SL, rho)
+    if i==2 || i==3
+        V_i = min((1+alpha)*V_SL, v_f*exp(-1/a*(rho(i)/rho_c)^a));
+    else
+        V_i = v_f*exp(-1/a*(rho(i)/rho_c)^a);
+    end
+end
+
+w_r1 = @(w_r) w_R + T*D_r - q_r5; 
+
+    
+
+% Define states
+% Velocity
+
+% Density
+
+% w_r
+
