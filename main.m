@@ -14,6 +14,7 @@ rho_c = 33 + E_1/3; % critical density [veh/kmlane]
 T = 10; % Sampling time for r(k) [s]
 T_c = 60; % Control signal sampling time [s]
 D_r = 1500; % ramp demand [veh(h)]
+L = 1000; % length of road segment
 
 % Initialize state variables
 V = zeros(6, 1); % Velocity states
@@ -21,6 +22,7 @@ rho = zeros(6, 1); % Density states
 w_r = 0; % Ramp flow states
 
 % Define functions
+
 q_r5 = @(r, w_r, rho) min(r*k, D_r + w_r/T, C_r*((rho_m-rho(5))/(rho_m-rho_c)));
 
 function V_i = V_i(i, V_SL, rho)
@@ -33,9 +35,12 @@ end
 
 w_r1 = @(r, w_r, rho) w_R + T*D_r - q_r5(r, w_r, rho); 
 
-    
+v_i = @(i, V_i, rho) v_i + (T/tau) * (V_i - v_i) + (T/L)*v_i*v_i
+
+
 
 % Define states
+
 % Velocity
 
 % Density
