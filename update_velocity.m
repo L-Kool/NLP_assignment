@@ -16,11 +16,12 @@ function v_next = update_velocity(x_k, u_k, params)
 
     % ADD BOUNDARY CONDITIONS
     v_prev = [v_k(1) ; v_k(1:end-1)];
-    rho_next = [rho_k(2:end) ; rho_k(end)];
+    rho_next_seg = [rho_k(2:end) ; rho_k(end)];
 
     % Relaxation term
-    V_i([1, 4, 5, 6]) = min( (1+params.alpha)*V_SL, params.v_f * exp(-(1/params.a) * (rho_k/params.rho_c) .^ params.a));
-    V_i([2,3]) = params.v_f * exp(-(1/params.a) * (rho_k/params.rho_c) .^ params.a);
+    V_i([1, 4, 5, 6]) = min( (1+params.alpha)*V_SL, params.v_f * exp(-(1/params.a) * (rho_k([1, 4, 5, 6]) ./ params.rho_c) .^ params.a));
+    V_i([2,3]) = params.v_f * exp(-(1/params.a) * (rho_k([2,3]) ./ params.rho_c) .^ params.a);
+
     
     relax_term = (params.T / params.tau) * (V_i - v_k);
 
@@ -28,7 +29,7 @@ function v_next = update_velocity(x_k, u_k, params)
     convection_term = (params.T / params.L) * (v_prev - v_k);
 
     % Anticipation term
-    anticipation_term = (params.mu * params.T / (params.tau * params.L) ) .* (rho_next - rho_k) ./ (rho_k + params.K) ;
+    anticipation_term = (params.mu * params.T / (params.tau * params.L) ) .* (rho_next_seg - rho_k) ./ (rho_k + params.K) ;
 
     % Calculation next velocity
     v_next = v_k + relax_term + convection_term - anticipation_term;
