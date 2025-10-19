@@ -6,7 +6,7 @@
 %   dims - dimensions
 %   k - time-step, needed to define q_i
 
-function rho_next = update_velocity(x_k, u_k, params, k)
+function rho_next = update_density(x_k, u_k, params, k)
 
     % Unpacking the state vector 
     rho_k = x_k(1:6);
@@ -27,7 +27,7 @@ function rho_next = update_velocity(x_k, u_k, params, k)
     q_i = params.lambda .* rho_k * v_k ;
     q_i_prev = [q_0 ; q_i(1:end-1)];
     q_r_i = zeros(6,1);
-    q_r_i = min(r_k .* params.C_r, params.D_r + w_r / T, ...
+    q_r_i = min(r_k * params.C_r, params.D_r + w_r / T, ...
         params.C_r * (params.rho_m - rho_k(5) / (params.rho_m - params.rho_c)));
 
     % Calculation next traffic density
