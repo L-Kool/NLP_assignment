@@ -6,11 +6,11 @@
 %   dims - dimensions
 %   k - time-step, needed to define q_i
 
-function rho_next = update_density(x_k, u_k, params, k)
+function rho_next = update_density(x_k, u_k, params, k, E2)
 
     % Unpacking the state vector 
-    rho_k = x_k(1:6);
-    v_k = x_k(7:12);
+    v_k = x_k(1:6);
+    rho_k = x_k(7:12);
     w_r = x_k(13);
 
     % Unpacking the input control vector

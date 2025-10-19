@@ -7,8 +7,8 @@
 
 function v_next = update_velocity(x_k, u_k, params)
     % Unpacking the state vector 
-    rho_k = x_k(1:6);
-    v_k = x_k(7:12);
+    v_k = x_k(1:6);
+    rho_k = x_k(7:12);
     w_r = x_k(13);
     % Unpacking the input control vector
     r_k = u_k(1);

@@ -8,7 +8,7 @@
 function w_r_next = update_wr(x_k, u_k, params)
 
     % Unpacking the state vector 
-    rho_k = x_k(1:6);
+    rho_k = x_k(7:12);
     w_r = x_k(13);
 
     % Unpacking the input control vector

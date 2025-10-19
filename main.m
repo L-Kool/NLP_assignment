@@ -1,49 +1,49 @@
-clear; clc;
+clear
+clc
+
+% Specific numbers based on student IDs
+E1 = 5;
+E2 = 13;
+E3 = 6;
 
 % System parameters
-tau = 19; % model parameter [s]
-mu = 60; % model parameter [km^2/h]
-C_r = 2000; % on-ramp capacity [veh/h]
-rho_m = 120; % [veh/kmlane]
-alpha = 0.1; % non-compliance of drivers to speed limit shown [-]
-K = 40; % model parameter [veh/kmlane]
-a = 1.867; % model parameter [-]
-v_f = 120; % free-flow speed that cars reach in steady state in low density freeway [km/h]
-E_1 = 5; % parameter based on student IDs
-rho_c = 33 + E_1/3; % critical density [veh/kmlane]
-T = 10; % Sampling time for r(k) [s]
-T_c = 60; % Control signal sampling time [s]
-D_r = 1500; % ramp demand [veh(h)]
-L = 1000; % length of road segment
+params.tau = 19 / 3600;     % model parameter [h]
+params.mu = 60;             % model parameter [km^2/h]
+params.C_r = 2000;          % on-ramp capacity [veh/h]
+params.rho_m = 120;         % maximum density[veh/km lane]
+params.alpha = 0.1;         % non-compliance of drivers to speed limit shown [-]
+params.K = 40;              % model parameter [veh/km lane]
+params.a = 1.867;           % model parameter [-]
+params.v_f = 120;           % free-flow speed that cars reach in steady state in low density freeway [km/h]
+params.rho_c = 33 + E_1/3;  % critical density [veh/kmlane]
+params.T = 10 / 3600;       % Sampling time for r(k) [h]
+params.T_c = 60;            % Control signal sampling time [s]
+params.D_r = 1500;          % ramp demand [veh/h]
+params.L = 1;               % length of road segment [km]
 
-% Initialize state variables
-V = zeros(6, 1); % Velocity states
-rho = zeros(6, 1); % Density states
-w_r = 0; % Ramp flow states
+% Initial conditions
+rho_0 = 25 * ones(6,1);
+v_0 = 80 * ones(6,1);
+w_r_0 = 0;
+x_0 = [rho_0 ; v_0 ; w_r_0];
 
-% Define functions
+% Simulation setup
+sim_steps = 120;
+state = zeros(13, sim_steps + 1);
+state(:, 1) = x_0;  
 
-q_r5 = @(r, w_r, rho) min(r*k, D_r + w_r/T, C_r*((rho_m-rho(5))/(rho_m-rho_c)));
+% Control signal
+u_control = zeros(2, sim_steps);
 
-function V_i = V_i(i, V_SL, rho)
-    if i==2 || i==3
-        V_i = min((1+alpha)*V_SL, v_f*exp(-1/a*(rho(i)/rho_c)^a));
-    else
-        V_i = v_f*exp(-1/a*(rho(i)/rho_c)^a);
-    end
-end
+% Simulation
+for k = 1:sim_steps
+    state_current = state(:, k);
+    u_control_current = u_control(:, k);
 
-w_r1 = @(r, w_r, rho) w_R + T*D_r - q_r5(r, w_r, rho); 
+    v_next = update_velocity(state_current, u_control_current, params);
+    rho_next = update_density(state_current, u_control_current, params, k, E2);
+    w_r_next = update_wr(state_current, u_control_current, params);
 
-v_i = @(i, V_i, rho) v_i + (T/tau) * (V_i - v_i) + (T/L)*v_i*v_i
+    state(:, k+1) = [v_next ; rho_next ; w_r_next];
 
-
-
-% Define states
-
-% Velocity
-
-% Density
-
-% w_r
-
+end 
