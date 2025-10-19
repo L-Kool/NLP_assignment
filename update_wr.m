@@ -15,8 +15,8 @@ function w_r_next = update_wr(x_k, u_k, params)
     r_k = u_k(1);
 
     % Defining q_r_5
-    q_r_5 = min(r_k * params.C_r, params.D_r + w_r / T, ...
-        params.C_r * (params.rho_m - rho_k(5) / (params.rho_m - params.rho_c)));
+    q_r_5 = min([r_k * params.C_r, params.D_r + w_r / params.T, ...
+        params.C_r * (params.rho_m - rho_k(5) / (params.rho_m - params.rho_c))]);
 
     % Calculating next w_r
     w_r_next = w_r + params.T*params.D_r - q_r_5;
