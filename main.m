@@ -87,3 +87,4 @@ xlabel('Time step')
 ylabel('Total Time Spent (veh * h)')
 title('Total Time Spent')
 legend('TTS')
+
