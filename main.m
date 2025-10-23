@@ -32,6 +32,8 @@ x_0 = [rho_0 ; v_0 ; w_r_0];
 sim_steps = 120;
 state = zeros(13, sim_steps + 1);
 state(:, 1) = x_0;  
+output = zeros(sim_steps + 1, 1);
+output(1) = params.T * x_0(13) + params.T * params.L * params.lambda * sum(x_0(7:12));
 
 % Control signal
 u_control = zeros(2, sim_steps);
@@ -46,7 +48,7 @@ for k = 1:sim_steps
     w_r_next = update_wr(state_current, u_control_current, params);
 
     state(:, k+1) = [v_next ; rho_next ; w_r_next];
-
+    output(k+1) = params.T * state(13,k) + params.T * params.L * params.lambda * sum(state(7:12, k));
 end 
 
 % Post-processing
@@ -78,3 +80,10 @@ xlabel('Time step')
 ylabel('Ramp flow')
 title('Ramp flow over time')
 legend('w_r')
+
+figure(4)
+plot(time, output);
+xlabel('Time step')
+ylabel('Total Time Spent (veh * h)')
+title('Total Time Spent')
+legend('TTS')
