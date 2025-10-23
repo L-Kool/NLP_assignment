@@ -19,6 +19,6 @@ function w_r_next = update_wr(x_k, u_k, params)
         params.C_r * (params.rho_m - rho_k(5) / (params.rho_m - params.rho_c))]);
 
     % Calculating next w_r
-    w_r_next = w_r + params.T*params.D_r - q_r_5;
+    w_r_next = w_r + params.T*(params.D_r - q_r_5);
     
 end
