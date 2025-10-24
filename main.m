@@ -2,9 +2,9 @@ clear
 clc
 
 % Specific numbers based on student IDs
-E1 = 5;
-E2 = 13;
-E3 = 6;
+params.E1 = 5;
+params.E2 = 13;
+params.E3 = 6;
 
 % System parameters
 params.tau = 19 / 3600;     % model parameter [h]
@@ -15,7 +15,7 @@ params.alpha = 0.1;         % non-compliance of drivers to speed limit shown [-]
 params.K = 40;              % model parameter [veh/km lane]
 params.a = 1.867;           % model parameter [-]
 params.v_f = 120;           % free-flow speed that cars reach in steady state in low density freeway [km/h]
-params.rho_c = 33 + E1/3;   % critical density [veh/kmlane]
+params.rho_c = 33 + params.E1/3;   % critical density [veh/kmlane]
 params.T = 10 / 3600;       % Sampling time for r(k) [h]
 params.T_c = 60;            % Control signal sampling time [s]
 params.D_r = 1500;          % ramp demand [veh/h]
@@ -46,7 +46,7 @@ for k = 1:sim_steps
     u_control_current = u_control(:, k);
 
     v_next = update_velocity(state_current, u_control_current, params);
-    rho_next = update_density(state_current, u_control_current, params, k, E2);
+    rho_next = update_density(state_current, u_control_current, params, k);
     w_r_next = update_wr(state_current, u_control_current, params);
 
     state(:, k+1) = [v_next ; rho_next ; w_r_next];

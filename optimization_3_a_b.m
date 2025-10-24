@@ -1,10 +1,9 @@
 %% Optimization problem Task 3a
 % parameters
 
-E1 = 5;
-E2 = 13;
-E3 = 6;
-
+params.E1 = 5;
+params.E2 = 13;
+params.E3 = 6;
 params.tau = 19 / 3600;     % model parameter [h]
 params.mu = 60;             % model parameter [km^2/h]
 params.C_r = 2000;          % on-ramp capacity [veh/h]
@@ -13,7 +12,7 @@ params.alpha = 0.1;         % non-compliance of drivers to speed limit shown [-]
 params.K = 40;              % model parameter [veh/km lane]
 params.a = 1.867;           % model parameter [-]
 params.v_f = 120;           % free-flow speed that cars reach in steady state in low density freeway [km/h]
-params.rho_c = 33 + E1/3;   % critical density [veh/kmlane]
+params.rho_c = 33 + params.E1/3;   % critical density [veh/kmlane]
 params.T = 10 / 3600;       % Sampling time for r(k) [h]
 params.T1 = 10;             % Sampling time for r(k) [s]
 params.T_c = 60;            % Control signal sampling time [s]
@@ -46,7 +45,7 @@ u_control0_1 = [zeros(Nc, 1); 60 * ones(Nc, 1)];
 u_control0_2 = [ones(Nc, 1); 120 * ones(Nc, 1)];
 
 % Objective function
-f = @(u) simulation(u, x0);
+totTTS = @(u) CalculateTotalTTS(u, x0, params);
 
 options = optimoptions('fmincon', ...
     'Algorithm', 'sqp', ...          % Use Sequential Quadratic Programming
@@ -58,11 +57,11 @@ options = optimoptions('fmincon', ...
     'ConstraintTolerance', 1e-6);    % Default
 
 tic; % Start timer
-[u_opt1, f_opt1, exitflag1, output1] = fmincon(f, u_control0_1, [], [], [], [], lb, ub, [], options);
+[u_opt1, f_opt1, exitflag1, output1] = fmincon(totTTS, u_control0_1, [], [], [], [], lb, ub, [], options);
 time1 = toc; % End timer
 
 tic; % Start timer
-[u_opt2, f_opt2, exitflag2, output2] = fmincon(f, u_control0_2, [], [], [], [], lb, ub, [], options);
+[u_opt2, f_opt2, exitflag2, output2] = fmincon(totTTS, u_control0_2, [], [], [], [], lb, ub, [], options);
 time2 = toc; % End timer
 
 %% Task 3b
@@ -82,10 +81,10 @@ time2_b = toc; % End timer
 % For each given optimal control input, we run a new simulation again for
 % each case that returns us plots.
 
-state_a_1 = simulation_for_plots(u_opt1, x0);
-state_a_2 = simulation_for_plots(u_opt2, x0);
-state_b_1 = simulation_var_b_for_plots(u_opt1_b, x0);
-state_b_2 = simulation_var_b_for_plots(u_opt2_b, x0);
+state_a_1 = simulation_for_plots(u_opt1, x0, params);
+state_a_2 = simulation_for_plots(u_opt2, x0, params);
+state_b_1 = simulation_var_b_for_plots(u_opt1_b, x0, params);
+state_b_2 = simulation_var_b_for_plots(u_opt2_b, x0, params);
 
 function [V, Rho, Wr, r_sim, VSL_sim] = extract_data(state_hist, u_opt_vec)
     V = state_hist(1:6, :);             % Speed history [km/h]
@@ -189,23 +188,57 @@ stairs(output_time_s, VSL_b1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1');
 stairs(output_time_s, VSL_b2, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2'); hold off;
 title('Variable Speed Limit (Applied) - Increased Inflow'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on; legend('show');
 
-%%
-% Question 5
+%% Question 5 (part 1)
 VSL_i_a = VSL_a1; %120x1
-scaledVSL = params.alpha .* VSL_i_a;
-expTerm_seg2 = params.v_f.*exp(-(1/params.a).*(Rho_a1(2,:) ./  params.rho_c).^params.a);
-expTerm_seg3 = params.v_f.*exp(-(1/params.a).*(Rho_a1(3,:) ./  params.rho_c).^params.a);
+vsl_term = (1 + params.alpha) .* VSL_i_a;
 
-V_i_k_seg2 = zeros(size(Rho_a1(2)));
-V_i_k_seg3 = zeros(size(Rho_a1(3)));
+rho_k_seg2 = Rho_a1(2, 2:end); % 1x120 vector for k=1...120
+rho_k_seg3 = Rho_a1(3, 2:end); % 1x120 vector for k=1...120
 
-for i = length(Rho_a1)-1
-    V_i_k_seg2(i) = min([scaledVSL(i) expTerm_seg2(i)]);
-end
+exp_term_seg2 = params.v_f .* exp(-(1/params.a) .* (rho_k_seg2 ./ params.rho_c).^params.a);
+exp_term_seg3 = params.v_f .* exp(-(1/params.a) .* (rho_k_seg3 ./ params.rho_c).^params.a);
 
-figure()
-plot(scaledVSL, 'DisplayName', '(1+\alpha) V_{SL,i}(k)');
-hold on
-plot(V_i_k_seg2, 'DisplayName', '(V_i(k)');
-title('(1+\alpha)V_{SL,i}(k) vs. V_i(k)');
-legend;
+V_i_k_seg2 = min(vsl_term', exp_term_seg2);
+V_i_k_seg3 = min(vsl_term', exp_term_seg3);
+
+% Plotting 
+figure('Name', 'Task 5: VSL vs. Desired Speed');
+subplot(2,1,1);
+plot(vsl_term, 'r--', 'LineWidth', 1.5, 'DisplayName', '(1+\alpha)V_{SL}(k)');
+hold on;
+plot(V_i_k_seg2, 'b-', 'LineWidth', 1.5, 'DisplayName', 'V_i(k) (Desired Speed)');
+title('Segment 2: Desired Speed vs. VSL Term');
+xlabel('Time [s]'); ylabel('[km/h]');
+legend('show'); grid on;
+hold off;
+
+subplot(2,1,2);
+plot(vsl_term, 'r--', 'LineWidth', 1.5, 'DisplayName', '(1+\alpha)V_{SL}(k)');
+hold on;
+plot(V_i_k_seg3, 'b-', 'LineWidth', 1.5, 'DisplayName', 'V_i(k) (Desired Speed)');
+title('Segment 3: Desired Speed vs. VSL Term');
+xlabel('Time [s]'); ylabel('[km/h]');
+legend('show'); grid on;
+hold off;
+
+%% Question 5 (part 2)
+
+r_k_vec = r_a1; 
+wr_k_vec = Wr_a1(1, 1:120)';
+rho5_k_vec = Rho_a1(5, 1:120)';
+
+q_r5_term1_allowed = r_k_vec .* params.C_r;
+q_r5_term2_demand = params.D_r + wr_k_vec ./ params.T;
+q_r5_term3_capacity = params.C_r .* (params.rho_m - rho5_k_vec) ./ (params.rho_m - params.rho_c);
+
+q_r5_k = min(min(q_r5_term1_allowed, q_r5_term2_demand), q_r5_term3_capacity);
+
+% Plotting
+figure('Name', 'Task 5: Ramp Metering Analysis');
+plot(q_r5_term1_allowed, 'r--', 'LineWidth', 1.5, 'DisplayName', 'r(k) * C_r (Allowed Flow)');
+hold on;
+plot(q_r5_k, 'g-', 'LineWidth', 1.5, 'DisplayName', 'q_{r,5}(k) (Actual Flow)');
+title('Segment 5: Allowed Ramp Flow vs. Actual Ramp Flow');
+xlabel('Time [s]'); ylabel('Flow [veh/h]');
+legend('show'); grid on;
+hold off;
