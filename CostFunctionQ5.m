@@ -1,35 +1,62 @@
-function cost = CostFunctionQ5(u, x_0, params)
+function costQ5 = CostFunctionQ5(u, x_0, params, simType, W_vsl, W_ramp)
+% costQ5 = J_TTS + W_vsl * J_vsl + W_ramp * J_ramp
 
-% Control signal
-u = [u(1:20)'; 
-    u(21:end)'];
-u_control = repelem(u, 1, 6);
-sim_steps = 120;
-
-% State init
-state = zeros(13, sim_steps + 1);
-state(:, 1) = x_0;  
-output = zeros(sim_steps + 1, 1);
-output(1) = params.T * x_0(13) + params.T * params.L * params.lambda * sum(x_0(7:12));
+[stateHist, outputHist] = simulation(u, x_0, params, simType);
 
 
+% Finding applied inputs
+Nc = length(u) / 2;
+r_sim = repelem(u(1:Nc)', 1, 6);     % 1x120 row vector
+VSL_sim = repelem(u(Nc+1:end)', 1, 6); % 1x120 row vector
 
-% Simulation
-for k = 1:sim_steps
-    state_current = state(:, k);
-    u_control_current = u_control(:, k);
+% Calculating cost terms
 
-    v_next = update_velocity(state_current, u_control_current, params);
-    rho_next = update_density(state_current, u_control_current, params, k);
-    w_r_next = update_wr(state_current, u_control_current, params);
+% Sum of TTS
+J_TTS = sum(outputHist);
 
-    state(:, k+1) = [v_next ; rho_next ; w_r_next];
-    output(k+1) = params.T * state(13,k) + params.T * params.L * params.lambda * sum(state(7:12, k));
-end 
+% VSL term
+vsl_term = (1 + params.alpha) .* VSL_sim;
 
-costTTS = sum(output);
+% Densities rho(k) for k=1..120 (cols 2:121 of state_hist)
+Rho2_k = stateHist(8, 2:121); % 1x120 (Segment 2)
+Rho3_k = stateHist(9, 2:121); % 1x120 (Segment 3)
 
+% Density-dependent term from Eq. (3)
+exp_term_seg2 = params.v_f .* exp(-(1/params.a) .* (Rho2_k ./ params.rho_c).^params.a);
+exp_term_seg3 = params.v_f .* exp(-(1/params.a) .* (Rho3_k ./ params.rho_c).^params.a);
 
+% Actual desired speed V_i(k)
+V_i_k_seg2 = min(vsl_term, exp_term_seg2);
+V_i_k_seg3 = min(vsl_term, exp_term_seg3);
 
-cost = costTTS + costSpeed + costRampFlow;
+% (1+a)VSL - V_i(k)
+diff_vsl_seg2 = vsl_term - V_i_k_seg2;
+diff_vsl_seg3 = vsl_term - V_i_k_seg3;
+
+% Cost is the sum of squares of these differences
+J_vsl = sum(diff_vsl_seg2.^2) + sum(diff_vsl_seg3.^2);
+
+% We need states at k=0..119 (cols 1:120) to calculate q_r,5(k)
+Wr_k_ramp  = stateHist(13, 1:120); % 1x120
+Rho5_k_ramp = stateHist(11, 1:120); % 1x120
+
+% Calculate the three terms from Equation (4) for k=1..120
+q_r5_term1_allowed = r_sim .* params.C_r;
+q_r5_term2_demand = params.D_r + Wr_k_ramp ./ params.T;
+q_r5_term3_capacity = params.C_r .* (params.rho_m - Rho5_k_ramp) ./ (params.rho_m - params.rho_c);
+
+% The actual on-ramp flow q_r,5(k)
+q_r5_k = min(min(q_r5_term1_allowed, q_r5_term2_demand), q_r5_term3_capacity);
+
+% Gap = r(k)C_r - q_r,5(k). This gap is >= 0 by definition.
+diff_ramp = q_r5_term1_allowed - q_r5_k;
+
+% Cost is the sum of squares of this difference
+J_ramp = sum(diff_ramp.^2);
+
+% Total combined cost
+costQ5.cost = J_TTS + W_vsl * J_vsl + W_ramp * J_ramp;
+costQ5.J_TTS = J_TTS;
+costQ5.J_vsl = J_vsl;
+costQ5.J_ramp = J_ramp;
 end
