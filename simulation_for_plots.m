@@ -1,4 +1,4 @@
-function totalTTS = simulation(u, x_0)
+function returnState = simulation_for_plots(u, x_0)
 
 E1 = 5;
 E2 = 13;
@@ -47,5 +47,5 @@ for k = 1:sim_steps
     output(k+1) = params.T * state(13,k) + params.T * params.L * params.lambda * sum(state(7:12, k));
 end 
 
-totalTTS = sum(output);
+returnState = state;
 end

@@ -1,4 +1,4 @@
-function totalTTS = simulation(u, x_0)
+function totalTTS = simulation_var_b(u, x_0)
 
 E1 = 5;
 E2 = 13;
@@ -40,7 +40,7 @@ for k = 1:sim_steps
     u_control_current = u_control(:, k);
 
     v_next = update_velocity(state_current, u_control_current, params);
-    rho_next = update_density(state_current, u_control_current, params, k, E2);
+    rho_next = update_density_var_b(state_current, u_control_current, params, k, E2);
     w_r_next = update_wr(state_current, u_control_current, params);
 
     state(:, k+1) = [v_next ; rho_next ; w_r_next];
