@@ -26,7 +26,7 @@ params.lambda = 2;          % number of lanes
 rho_0 = 25 * ones(6,1);
 v_0 = 80 * ones(6,1);
 w_r_0 = 0;
-x_0 = [rho_0 ; v_0 ; w_r_0];
+x_0 = [v_0 ; rho_0 ; w_r_0];
 
 % Simulation setup
 sim_steps = 120;
@@ -38,7 +38,10 @@ output(1) = params.T * x_0(13) + params.T * params.L * params.lambda * sum(x_0(7
 % Control signal
 % r_k first row
 % vsl second row
-u_control = zeros(2, sim_steps);
+% u_control = zeros(2, sim_steps);
+
+u_control = [ones(1, sim_steps);
+    120 * ones(1, sim_steps)];
 
 % Simulation
 for k = 1:sim_steps
