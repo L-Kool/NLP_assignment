@@ -20,9 +20,9 @@ function v_next = update_velocity(x_k, u_k, params)
 
     % Relaxation term
     V_i = zeros(6,1);
-    V_i(2,:) = min([(1+params.alpha) * V_SL , params.v_f * exp(-(1/params.a) .* (rho_k(2) ./ params.rho_c) .^ params.a)]);
-    V_i(3,:) = min([(1+params.alpha) * V_SL , params.v_f * exp(-(1/params.a) .* (rho_k(3) ./ params.rho_c) .^ params.a)]);
-    V_i([1, 4, 5, 6],:) = params.v_f * exp(-(1/params.a) * (rho_k([1, 4, 5, 6]) ./ params.rho_c) .^ params.a);
+    V_i(2,:) = min([(1+params.alpha) * V_SL , params.v_f * exp(-(1/params.a) * (rho_k(2) / params.rho_c) ^ params.a)]);
+    V_i(3,:) = min([(1+params.alpha) * V_SL , params.v_f * exp(-(1/params.a) * (rho_k(3) / params.rho_c) ^ params.a)]);
+    V_i([1, 4, 5, 6],:) = params.v_f * exp(-(1/params.a) * (rho_k([1, 4, 5, 6]) / params.rho_c) .^ params.a);
 
     
     relax_term = (params.T / params.tau) * (V_i - v_k);
