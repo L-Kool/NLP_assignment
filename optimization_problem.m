@@ -34,13 +34,13 @@ lb = [lb_r; lb_vsl]; % Lower bounds for u_control
 ub = [ub_r; ub_vsl]; % Upper bounds for u_control
 
 % Initial conditions
-% Guess 1: Ramp closed (r=0), Min speed limit (VSL=60)
+% 1. Ramp closed (r=0), Min speed limit (VSL=60)
 u_control0_1 = [zeros(Nc, 1); 60 * ones(Nc, 1)];
 
-% Guess 2: Ramp fully open (r=1), Max speed limit (VSL=120) - "No Control"
+% 2. Ramp fully open (r=1), Max speed limit (VSL=120) - "No Control"
 u_control0_2 = [ones(Nc, 1); 120 * ones(Nc, 1)];
 
-% Initial conditions (arbitrary?)
+% Initial conditions (from the sheet)
 rho_0 = 25 * ones(6,1);
 v_0 = 80 * ones(6,1);
 w_r_0 = 0;
@@ -109,7 +109,7 @@ end
 
 
 %% Plotting
-% == Task 3a Comparison (Different Starting Points, Original Inflow) ==
+% Task 3a Comparison (Different Starting Points, Original Inflow)
 fprintf('Plotting Task 3a comparison (Start 1 vs Start 2)\n');
 num_segments = 6;
 
@@ -154,7 +154,7 @@ stairs(output_time_s, VSL_a2, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2')
 title('Variable Speed Limit (Applied)'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on; legend('show');
 
 
-% == Task 3b Comparison (Different Starting Points, Increased Inflow) ==
+% Task 3b Comparison (Different Starting Points, Increased Inflow)
 fprintf('Plotting Task 3b comparison (Start 1 vs Start 2)\n');
 
 % Speeds 3b
