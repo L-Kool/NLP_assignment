@@ -36,6 +36,8 @@ output = zeros(sim_steps + 1, 1);
 output(1) = params.T * x_0(13) + params.T * params.L * params.lambda * sum(x_0(7:12));
 
 % Control signal
+% r_k first row
+% vsl second row
 u_control = zeros(2, sim_steps);
 
 % Simulation
