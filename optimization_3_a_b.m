@@ -20,7 +20,6 @@ params.T_c = 60;            % Control signal sampling time [s]
 params.D_r = 1500;          % ramp demand [veh/h]
 params.L = 1;               % length of road segment [km]
 params.lambda = 2;          % number of lanes
-%%
 
 % Sim steps
 Nc = 20;
@@ -33,25 +32,24 @@ ub_vsl = 120 * ones(Nc, 1);
 lb = [lb_r; lb_vsl]; % Lower bounds for u_control
 ub = [ub_r; ub_vsl]; % Upper bounds for u_control
 
-% Initial conditions
+% Initial state conditions 
+rho_0 = 25 * ones(6,1);
+v_0 = 80 * ones(6,1);
+w_r_0 = 0;
+x0 = [v_0 ; rho_0 ; w_r_0];
+
+% Initial control conditions
 % 1. Ramp closed (r=0), Min speed limit (VSL=60)
 u_control0_1 = [zeros(Nc, 1); 60 * ones(Nc, 1)];
 
 % 2. Ramp fully open (r=1), Max speed limit (VSL=120) - "No Control"
 u_control0_2 = [ones(Nc, 1); 120 * ones(Nc, 1)];
 
-% Initial conditions (from the sheet)
-rho_0 = 25 * ones(6,1);
-v_0 = 80 * ones(6,1);
-w_r_0 = 0;
-x0 = [v_0 ; rho_0 ; w_r_0];
-
-
-% objective function
+% Objective function
 f = @(u) simulation(u, x0);
 
 options = optimoptions('fmincon', ...
-    'Algorithm', 'sqp', ...         % Use Sequential Quadratic Programming
+    'Algorithm', 'sqp', ...          % Use Sequential Quadratic Programming
     'Display', 'iter', ...           % Show output for each iteration
     'MaxFunctionEvaluations', 50000, ... % Increase limit (simulation is expensive)
     'MaxIterations', 400, ...        % Default is 400, might need more
@@ -70,7 +68,7 @@ time2 = toc; % End timer
 %% Task 3b
 
 % objective function
-f_b = @(u) simulation_var_b(u, x0);
+f_b = @(u) optimization_var_3_a_b(u, x0);
 
 tic; % Start timer
 [u_opt1_b, f_opt1_b, exitflag1_b, output1_b] = fmincon(f_b, u_control0_1, [], [], [], [], lb, ub, [], options);
@@ -190,3 +188,24 @@ subplot(2,1,2);
 stairs(output_time_s, VSL_b1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1'); hold on;
 stairs(output_time_s, VSL_b2, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2'); hold off;
 title('Variable Speed Limit (Applied) - Increased Inflow'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on; legend('show');
+
+%%
+% Question 5
+VSL_i_a = VSL_a1; %120x1
+scaledVSL = params.alpha .* VSL_i_a;
+expTerm_seg2 = params.v_f.*exp(-(1/params.a).*(Rho_a1(2,:) ./  params.rho_c).^params.a);
+expTerm_seg3 = params.v_f.*exp(-(1/params.a).*(Rho_a1(3,:) ./  params.rho_c).^params.a);
+
+V_i_k_seg2 = zeros(size(Rho_a1(2)));
+V_i_k_seg3 = zeros(size(Rho_a1(3)));
+
+for i = length(Rho_a1)-1
+    V_i_k_seg2(i) = min([scaledVSL(i) expTerm_seg2(i)]);
+end
+
+figure()
+plot(scaledVSL, 'DisplayName', '(1+\alpha) V_{SL,i}(k)');
+hold on
+plot(V_i_k_seg2, 'DisplayName', '(V_i(k)');
+title('(1+\alpha)V_{SL,i}(k) vs. V_i(k)');
+legend;

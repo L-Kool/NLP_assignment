@@ -1,5 +1,5 @@
 function total_tts = objective_tts(u_control, x0, N_sim, params)
-%OBJECTIVE_TTS Calculates the total TTS for the freeway simulation.
+%   OBJECTIVE_TTS Calculates the total TTS for the freeway simulation.
 %   total_tts = OBJECTIVE_TTS(u_control, x0, N_sim, params) takes the
 %   control vector u_control (containing r_control and VSL_control),
 %   the initial state x0, number of simulation steps N_sim, and the

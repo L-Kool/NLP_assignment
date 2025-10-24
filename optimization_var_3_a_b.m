@@ -1,4 +1,4 @@
-function totalTTS = simulation_var_b(u, x_0)
+function totalTTS = optimization_var_3_a_b(u, x_0)
 
 E1 = 5;
 E2 = 13;
