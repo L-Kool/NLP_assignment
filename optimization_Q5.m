@@ -1,4 +1,5 @@
 %% Optimization problem Question 5
+
 % Defining parameters
 params.E1 = 5;
 params.E2 = 13;
@@ -56,9 +57,10 @@ options = optimoptions('fmincon', ...
     'StepTolerance', 1e-6, ...       % Default
     'ConstraintTolerance', 1e-6);    % Default
 
-tic; % Start timer
+tic; 
+% Run optimization_3_a_b.m before to have u_opt_a available for warm start
 [u_opt_5, f_opt_5, exitflag_5, output_5] = fmincon(costQ5, u_opt_a, [], [], [], [], lb, ub, [], options);
-time_5 = toc; % End timer
+time_5 = toc; 
 
 fprintf('Task 5 optimization complete. Time: %.2f s\n', time_5);
 fprintf('Optimal combined cost: %.4f\n', f_opt_5);
@@ -70,3 +72,9 @@ costQ5_opt = CostFunctionQ5(u_opt_5, x0, params, 0, W_vsl, W_ramp);
 fprintf('Cost TTS: %e\n', costQ5_opt.J_TTS);
 fprintf('Cost vsl: %e\n', costQ5_opt.J_vsl);
 fprintf('Cost ramp: %e\n', costQ5_opt.J_ramp);
+
+% Plotting optimal ramp metering rates and VSL
+[V_opt_5, Rho_opt_5, Wr_opt_5, r_opt_5, VSL_opt_5] = extract_data(stateHist_opt5, u_opt_5);
+
+
+

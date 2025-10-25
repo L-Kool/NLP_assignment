@@ -20,11 +20,7 @@ for k = 1:sim_steps
     u_control_current = u_control(:, k);
 
     v_next = update_velocity(state_current, u_control_current, params);
-    if simType == 0
-        rho_next = update_density(state_current, u_control_current, params, k);
-    elseif simType == 1
-        rho_next = update_density_var_b(state_current, u_control_current, params, k);
-    end 
+    rho_next = update_density(state_current, u_control_current, params, k, simType);
     w_r_next = update_wr(state_current, u_control_current, params);
 
     state(:, k+1) = [v_next ; rho_next ; w_r_next];

@@ -1,5 +1,5 @@
 %% Optimization problem Task 3a
-
+close all; clear;
 % Defining parameters
 params.E1 = 5;
 params.E2 = 13;
@@ -150,20 +150,20 @@ title('Variable Speed Limit (Applied)'); ylabel('[km/h]'); xlabel('Time [s]'); y
 
 
 %% Task 3_ext Comparison (Different Starting Points, Increased Inflow)
-fprintf('Plotting Task 3_ext comparison (Start 1 vs Start 2)\n');
+fprintf('Plotting Task 3_{ext} comparison (Start 1 vs Start 2)\n');
 
 % Speeds 3_ext
-figure('Name', 'Task 3_ext Speeds Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+figure('Name', 'Task 3_{ext} Speeds Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 subplot(2,1,1); plot(sim_time_s, V_a1'); title('Speeds - Start (a) (r=0, VSL=60), Increased Inflow'); ylabel('[km/h]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
 subplot(2,1,2); plot(sim_time_s, V_b1'); title('Speeds - Start (b) (r=1, VSL=120), Increased Inflow'); ylabel('[km/h]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
 
 % Densities 3_ext
-figure('Name', 'Task 3_ext Densities Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+figure('Name', 'Task 3_{ext} Densities Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 subplot(2,1,1); plot(sim_time_s, Rho_a1'); title('Densities - Start (a) (r=0, VSL=60), Increased Inflow'); ylabel('[veh/km/lane]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
 subplot(2,1,2); plot(sim_time_s, Rho_b1'); title('Densities - Start (b) (r=1, VSL=120), Increased Inflow'); ylabel('[veh/km/lane]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
 
 % Queue 3_ext
-figure('Name', 'Task 3_ext Queue Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+figure('Name', 'Task 3_{ext} Queue Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 plot(sim_time_s, Wr_a1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start (a) (r=0, VSL=60)');
 hold on;
 plot(sim_time_s, Wr_b1, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start (b) (r=1, VSL=120)');
@@ -176,7 +176,7 @@ legend('show');
 grid on;
 
 % Inputs 3_ext
-figure('Name', 'Task 3_ext Inputs Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+figure('Name', 'Task 3_{ext} Inputs Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 subplot(2,1,1);
 stairs(output_time_s, r_a1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1'); hold on;
 stairs(output_time_s, r_b1, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2'); hold off;
@@ -189,8 +189,8 @@ title('Variable Speed Limit (Applied) - Increased Inflow'); ylabel('[km/h]'); xl
 %% Question 5 (part 1)
 vsl_term = (1 + params.alpha) .* VSL_b;
 
-rho_k_seg2 = Rho_b(2, 2:end); % 1x120 vector for k=1...120
-rho_k_seg3 = Rho_b(3, 2:end); % 1x120 vector for k=1...120
+rho_k_seg2 = Rho_b(2, 2:end); 
+rho_k_seg3 = Rho_b(3, 2:end); 
 
 exp_term_seg2 = params.v_f .* exp(-(1/params.a) .* (rho_k_seg2 ./ params.rho_c).^params.a);
 exp_term_seg3 = params.v_f .* exp(-(1/params.a) .* (rho_k_seg3 ./ params.rho_c).^params.a);
@@ -198,7 +198,8 @@ exp_term_seg3 = params.v_f .* exp(-(1/params.a) .* (rho_k_seg3 ./ params.rho_c).
 V_i_k_seg2 = min(vsl_term', exp_term_seg2);
 V_i_k_seg3 = min(vsl_term', exp_term_seg3);
 
-% Plotting 
+% Plotting (1+alpha)*VSL vs V_i(k)
+close all
 figure('Name', 'Task 5: VSL vs. Desired Speed');
 subplot(2,1,1);
 plot(vsl_term, 'r--', 'LineWidth', 1.5, 'DisplayName', '(1+\alpha)V_{SL}(k)');
@@ -230,12 +231,15 @@ q_r5_term3_capacity = params.C_r .* (params.rho_m - rho5_k_vec) ./ (params.rho_m
 
 q_r5_k = min(min(q_r5_term1_allowed, q_r5_term2_demand), q_r5_term3_capacity);
 
-% Plotting
+% Plotting r(k)*C_r vs q_r,5(k)
+close all
 figure('Name', 'Task 5: Ramp Metering Analysis');
-plot(q_r5_term1_allowed, 'r--', 'LineWidth', 1.5, 'DisplayName', 'r(k) * C_r (Allowed Flow)');
+plot(q_r5_term1_allowed, 'r--', 'LineWidth', 2, 'DisplayName', 'r(k) * C_r (Allowed Flow)');
 hold on;
-plot(q_r5_k, 'g-', 'LineWidth', 1.5, 'DisplayName', 'q_{r,5}(k) (Actual Flow)');
-title('Segment 5: Allowed Ramp Flow vs. Actual Ramp Flow');
-xlabel('Time [s]'); ylabel('Flow [veh/h]');
-legend('show'); grid on;
+plot(q_r5_k, 'b-', 'LineWidth', 2, 'DisplayName', 'q_{r,5}(k) (Actual Flow)');
+ylim([0 2100]);
+title('Segment 5: Allowed Ramp Flow vs. Actual Ramp Flow', 'FontSize', 14);
+xlabel('Time [s]'); 
+ylabel('Flow [veh/h]');
+legend('show', 'FontSize', 14); grid on;
 hold off;

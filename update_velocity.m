@@ -28,7 +28,7 @@ function v_next = update_velocity(x_k, u_k, params)
     relax_term = (params.T / params.tau) * (V_i - v_k);
 
     % Convection term
-    convection_term = (params.T / params.L) * (v_prev - v_k);
+    convection_term = (params.T / params.L) .* v_k .* (v_prev - v_k);
 
     % Anticipation term
     anticipation_term = (params.mu * params.T / (params.tau * params.L) ) .* (rho_next_seg - rho_k) ./ (rho_k + params.K) ;
