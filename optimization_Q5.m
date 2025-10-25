@@ -42,8 +42,8 @@ x0 = [v_0 ; rho_0 ; w_r_0];
 u_control0_a = [zeros(Nc, 1); 60 * ones(Nc, 1)];
 
 % Weights for cost terms
-W_vsl = 8.3e-3;
-W_ramp = 4.7e-6;
+W_vsl = 6.3e-3;
+W_ramp = 6.3e-6;
 
 % Objective function
 costQ5 = @(u) CostFunctionQ5(u, x0, params, 0, W_vsl, W_ramp).cost;
@@ -67,7 +67,7 @@ fprintf('Optimal combined cost: %.4f\n', f_opt_5);
 
 %% Post-processing
 % Obtaining optimal history
-[stateHist_opt5, outputHist_opt5] = simulation(u_opt_5, x0, params, 0);
+[stateHist_opt5, outputHist_opt5, totalTTS_opt5] = simulation(u_opt_5, x0, params, 0);
 costQ5_opt = CostFunctionQ5(u_opt_5, x0, params, 0, W_vsl, W_ramp);
 fprintf('Cost TTS: %e\n', costQ5_opt.J_TTS);
 fprintf('Cost vsl: %e\n', costQ5_opt.J_vsl);
@@ -76,5 +76,28 @@ fprintf('Cost ramp: %e\n', costQ5_opt.J_ramp);
 % Plotting optimal ramp metering rates and VSL
 [V_opt_5, Rho_opt_5, Wr_opt_5, r_opt_5, VSL_opt_5] = extract_data(stateHist_opt5, u_opt_5);
 
+figure('Name', 'Task 5: Control Input Comparison');
+subplot(2,1,1);
+stairs(r_a, 'b:', 'LineWidth', 2, 'DisplayName', 'Task 3a (TTS-Only)');
+hold on;
+stairs(r_opt_5, 'b-', 'LineWidth', 3, 'DisplayName', 'Task 5 (Multi-Obj)');
+title('Ramp Metering Rate Comparison', 'FontSize', 14);
+ylabel('Rate', 'FontSize', 14); 
+ylim([-0.1 1.1]);
+legend('show', 'FontSize', 14); 
+grid on;
+hold off;
+
+subplot(2,1,2);
+stairs(VSL_a, 'r:', 'LineWidth', 2, 'DisplayName', 'Task 3a (TTS-Only)');
+hold on;
+stairs(VSL_opt_5, 'r-', 'LineWidth', 3, 'DisplayName', 'Task 5 (Multi-Obj)');
+title('Variable Speed Limit Comparison', 'FontSize', 14);
+ylabel('[km/h]'); 
+xlabel('Time [s]', 'FontSize', 14); 
+ylim([50 130]);
+legend('show', 'FontSize', 14); 
+grid on;
+hold off;
 
 

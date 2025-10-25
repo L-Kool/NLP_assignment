@@ -57,14 +57,18 @@ u_control0_b = [ones(Nc, 1); 120 * ones(Nc, 1)];
 %% Question 3.a, 3.b 
 
 % Objective function
-totTTS = @(u) CalculateTotalTTS(u, x0, params, 0);
+totTTS = @(u) simulation(u, x0, params, 0).totalTTS;
 
-% Optimization for starting point (a)
+%% Optimization for starting point (a)
 tic; % Start timer
 [u_opt_a, f_opt_a, exitflag_a, output_opt_a] = fmincon(totTTS, u_control0_a, [], [], [], [], lb, ub, [], options);
 time_a = toc; % End timer
+% Print the cost function from the optimization
+fprintf('Exit flag of optimization 3 for starting point(a): %d\n', exitflag_a)
+fprintf('Optimization time for starting point (a): %.4f\n', time_a)
+fprintf('Optimal cost function value for starting point (a): %.4f\n', f_opt_a)
 
-% Optimization for starting point (b)
+%% Optimization for starting point (b)
 tic; % Start timer
 [u_opt_b, f_opt_b, exitflag_b, output_opt_b] = fmincon(totTTS, u_control0_b, [], [], [], [], lb, ub, [], options);
 time_b = toc; % End timer
@@ -72,7 +76,7 @@ time_b = toc; % End timer
 %% Question 3.a, 3.b with q_0(k) 50% higher
 
 % Objective function
-totTTS_1 = @(u) CalculateTotalTTS(u, x0, params, 1);
+totTTS_1 = @(u) simulation(u, x0, params, 1).totalTTS;
 
 % Optimization for starting point (a)
 tic; % Start timer
@@ -187,10 +191,10 @@ stairs(output_time_s, VSL_b1, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2')
 title('Variable Speed Limit (Applied) - Increased Inflow'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on; legend('show');
 
 %% Question 5 (part 1)
-vsl_term = (1 + params.alpha) .* VSL_b;
+vsl_term = (1 + params.alpha) .* VSL_a;
 
-rho_k_seg2 = Rho_b(2, 2:end); 
-rho_k_seg3 = Rho_b(3, 2:end); 
+rho_k_seg2 = Rho_a(2, 2:end); 
+rho_k_seg3 = Rho_a(3, 2:end); 
 
 exp_term_seg2 = params.v_f .* exp(-(1/params.a) .* (rho_k_seg2 ./ params.rho_c).^params.a);
 exp_term_seg3 = params.v_f .* exp(-(1/params.a) .* (rho_k_seg3 ./ params.rho_c).^params.a);
@@ -202,28 +206,32 @@ V_i_k_seg3 = min(vsl_term', exp_term_seg3);
 close all
 figure('Name', 'Task 5: VSL vs. Desired Speed');
 subplot(2,1,1);
-plot(vsl_term, 'r--', 'LineWidth', 1.5, 'DisplayName', '(1+\alpha)V_{SL}(k)');
+stairs(output_time_s, vsl_term, 'r--', 'LineWidth', 2, 'DisplayName', '(1+\alpha)V_{SL}(k)');
 hold on;
-plot(V_i_k_seg2, 'b-', 'LineWidth', 1.5, 'DisplayName', 'V_i(k) (Desired Speed)');
-title('Segment 2: Desired Speed vs. VSL Term');
-xlabel('Time [s]'); ylabel('[km/h]');
-legend('show'); grid on;
+stairs(output_time_s, V_i_k_seg2, 'b-', 'LineWidth', 2, 'DisplayName', 'V_i(k) (Desired Speed)');
+title('Segment 2: Desired Speed vs. VSL Term', 'FontSize', 14);
+xlabel('Time [s]', 'FontSize', 14); 
+ylabel('[km/h]', 'FontSize', 14);
+legend('show', 'FontSize', 14); 
+grid on;
 hold off;
 
 subplot(2,1,2);
-plot(vsl_term, 'r--', 'LineWidth', 1.5, 'DisplayName', '(1+\alpha)V_{SL}(k)');
+stairs(output_time_s, vsl_term, 'r--', 'LineWidth', 2, 'DisplayName', '(1+\alpha)V_{SL}(k)');
 hold on;
-plot(V_i_k_seg3, 'b-', 'LineWidth', 1.5, 'DisplayName', 'V_i(k) (Desired Speed)');
-title('Segment 3: Desired Speed vs. VSL Term');
-xlabel('Time [s]'); ylabel('[km/h]');
-legend('show'); grid on;
+stairs(output_time_s, V_i_k_seg3, 'b-', 'LineWidth', 2, 'DisplayName', 'V_i(k) (Desired Speed)');
+title('Segment 3: Desired Speed vs. VSL Term', 'FontSize', 14);
+xlabel('Time [s]', 'FontSize', 14); 
+ylabel('[km/h]', 'FontSize', 14);
+legend('show', 'FontSize', 14); 
+grid on;
 hold off;
 
 %% Question 5 (part 2)
 
-r_k_vec = r_b; 
-wr_k_vec = Wr_b(1, 1:120)';
-rho5_k_vec = Rho_b(5, 1:120)';
+r_k_vec = r_a; 
+wr_k_vec = Wr_a(1, 1:120)';
+rho5_k_vec = Rho_a(5, 1:120)';
 
 q_r5_term1_allowed = r_k_vec .* params.C_r;
 q_r5_term2_demand = params.D_r + wr_k_vec ./ params.T;
@@ -234,12 +242,12 @@ q_r5_k = min(min(q_r5_term1_allowed, q_r5_term2_demand), q_r5_term3_capacity);
 % Plotting r(k)*C_r vs q_r,5(k)
 close all
 figure('Name', 'Task 5: Ramp Metering Analysis');
-plot(q_r5_term1_allowed, 'r--', 'LineWidth', 2, 'DisplayName', 'r(k) * C_r (Allowed Flow)');
+stairs(output_time_s, q_r5_term1_allowed, 'r--', 'LineWidth', 2, 'DisplayName', 'r(k) * C_r (Allowed Flow)');
 hold on;
-plot(q_r5_k, 'b-', 'LineWidth', 2, 'DisplayName', 'q_{r,5}(k) (Actual Flow)');
+stairs(output_time_s, q_r5_k, 'b-', 'LineWidth', 2, 'DisplayName', 'q_{r,5}(k) (Actual Flow)');
 ylim([0 2100]);
 title('Segment 5: Allowed Ramp Flow vs. Actual Ramp Flow', 'FontSize', 14);
-xlabel('Time [s]'); 
-ylabel('Flow [veh/h]');
+xlabel('Time [s]', 'FontSize', 14); 
+ylabel('Flow [veh/h]', 'FontSize', 14);
 legend('show', 'FontSize', 14); grid on;
 hold off;
