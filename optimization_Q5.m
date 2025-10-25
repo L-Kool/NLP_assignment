@@ -84,9 +84,10 @@ hold off;
 
 %% Determining weights
 % Extract cost terms
-J_TTS_3 = CostFunctionQ5(u_opt_a, x0, params, 0, 0, 0).J_TTS;
-J_vsl_3 = CostFunctionQ5(u_opt_a, x0, params, 0, 0, 0).J_vsl;
-J_ramp_3 = CostFunctionQ5(u_opt_a, x0, params, 0, 0, 0).J_ramp;
+costTerms3 = CostFunctionQ5(u_opt_a, x0, params, 0, 0, 0);
+J_TTS_3 = costTerms3.J_TTS;
+J_vsl_3 = costTerms3.J_vsl;
+J_ramp_3 = costTerms3.J_ramp;
 W_vsl = J_TTS_3 / J_vsl_3;
 W_ramp = J_TTS_3 / J_ramp_3;
 fprintf('\nWeight for VSL term, W_{vsl} = %d\n', W_vsl);

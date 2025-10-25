@@ -1,8 +1,10 @@
 function costQ5 = CostFunctionQ5(u, x_0, params, simType, W_vsl, W_ramp)
 % costQ5 = J_TTS + W_vsl * J_vsl + W_ramp * J_ramp
 
-stateHist = simulation(u, x_0, params, simType).stateHist;
-outputHist = simulation(u, x_0, params, simType).outputHist;
+
+simResults = simulation(u, x_0, params, simType).stateHist;
+stateHist = simResults.stateHist;
+outputHist = simResults.outputHist;
 
 
 % Finding applied inputs
