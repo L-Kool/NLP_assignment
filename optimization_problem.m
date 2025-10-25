@@ -51,10 +51,10 @@ x0 = [v_0 ; rho_0 ; w_r_0];
 f = @(u) simulation(u, x0);
 
 options = optimoptions('fmincon', ...
-    'Algorithm', 'sqp', ...         % Use Sequential Quadratic Programming
+    'Algorithm', 'sqp', ...         % Use SQP
     'Display', 'iter', ...           % Show output for each iteration
-    'MaxFunctionEvaluations', 50000, ... % Increase limit (simulation is expensive)
-    'MaxIterations', 400, ...        % Default is 400, might need more
+    'MaxFunctionEvaluations', 50000, ... % Increase limit
+    'MaxIterations', 400, ...        % Default
     'OptimalityTolerance', 1e-6, ... % Default
     'StepTolerance', 1e-6, ...       % Default
     'ConstraintTolerance', 1e-6);    % Default
@@ -162,7 +162,7 @@ title('Applied Variable Speed Limit'); ylabel('[km/h]'); xlabel('Time [s]'); yli
 figure('Name', 'Output Comparison - 3a', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 plot(sim_time_s, output_a_1); hold on; plot(sim_time_s, output_a_2); title('TTS over time Comparison'); ylabel('[veh*h]'); xlim([0 1210]); grid on; legend('Start 1', 'Start 2');
 
-%%
+%% Plots for 3b
 % Task 3b Comparison (Different Starting Points, Increased Inflow)
 fprintf('Plotting Task 3b comparison (Start 1 vs Start 2)\n');
 
