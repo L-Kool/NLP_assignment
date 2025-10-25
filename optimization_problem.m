@@ -128,7 +128,7 @@ subplot(2,1,1); plot(sim_time_s, Rho_a1'); title('Densities - Start 1 (r=0, VSL=
 subplot(2,1,2); plot(sim_time_s, Rho_a2'); title('Densities - Start 2 (r=1, VSL=120)'); ylabel('[veh/km/lane]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
 
 % Queue 3a
-figure('Name', 'Task 3a Queue Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+figure('Name', 'Queue Comparison - 3a', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 plot(sim_time_s, Wr_a1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1 (r=0, VSL=60)');
 hold on;
 plot(sim_time_s, Wr_a2, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2 (r=1, VSL=120)');
