@@ -63,7 +63,6 @@ state_w_r = state(end, :);
 
 % Visualisations
 time = 0:sim_steps;
-close all
 
 figure(1)
 plot(time, state_v);
