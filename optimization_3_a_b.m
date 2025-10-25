@@ -46,35 +46,40 @@ options = optimoptions('fmincon', ...
     'StepTolerance', 1e-6, ...       % Default
     'ConstraintTolerance', 1e-6);    % Default
 
-%% Question 3.a, 3.b 
 
 % Initial control conditions
-% 1. Ramp closed (r=0), Min speed limit (VSL=60)
+% A. Ramp closed (r=0), Min speed limit (VSL=60)
 u_control0_a = [zeros(Nc, 1); 60 * ones(Nc, 1)];
 
-% 2. Ramp fully open (r=1), Max speed limit (VSL=120) - "No Control"
+% B. Ramp fully open (r=1), Max speed limit (VSL=120) - "No Control"
 u_control0_b = [ones(Nc, 1); 120 * ones(Nc, 1)];
+
+%% Question 3.a, 3.b 
 
 % Objective function
 totTTS = @(u) CalculateTotalTTS(u, x0, params, 0);
 
+% Optimization for starting point (a)
 tic; % Start timer
 [u_opt_a, f_opt_a, exitflag_a, output_opt_a] = fmincon(totTTS, u_control0_a, [], [], [], [], lb, ub, [], options);
 time_a = toc; % End timer
 
+% Optimization for starting point (b)
 tic; % Start timer
 [u_opt_b, f_opt_b, exitflag_b, output_opt_b] = fmincon(totTTS, u_control0_b, [], [], [], [], lb, ub, [], options);
 time_b = toc; % End timer
 
 %% Question 3.a, 3.b with q_0(k) 50% higher
 
-% objective function
+% Objective function
 totTTS_1 = @(u) CalculateTotalTTS(u, x0, params, 1);
 
+% Optimization for starting point (a)
 tic; % Start timer
 [u_opt1_a, f_opt1_a, exitflag1_a, output1_opt_a] = fmincon(totTTS_1, u_control0_a, [], [], [], [], lb, ub, [], options);
 time1_a = toc; % End timer
 
+% Optimization for starting point (b)
 tic; % Start timer
 [u_opt1_b, f_opt1_b, exitflag1_b, output1_opt_b] = fmincon(totTTS_1, u_control0_b, [], [], [], [], lb, ub, [], options);
 time1_b = toc; % End timer
@@ -99,31 +104,31 @@ time1_b = toc; % End timer
 
 
 %% Plotting
-% Task 3a Comparison (Different Starting Points, Original Inflow)
-fprintf('Plotting Task 3a comparison (Start 1 vs Start 2)\n');
+% Task 3 Comparison (Different Starting Points, Original Inflow)
+fprintf('Plotting Task 3 comparison (Start (a) vs Start (b))\n');
 num_segments = 6;
 
 segment_legends = arrayfun(@(i) sprintf('Seg %d', i), 1:num_segments, 'UniformOutput', false);
 
 sim_time_s = (1:121).*10;
 
-% Speeds 3a
-figure('Name', 'Task 3a Speeds Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
-subplot(2,1,1); plot(sim_time_s, V_a'); title('Speeds - Start 1 (r=0, VSL=60)'); ylabel('[km/h]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
-subplot(2,1,2); plot(sim_time_s, V_b'); title('Speeds - Start 2 (r=1, VSL=120)'); ylabel('[km/h]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
+% Speeds 3
+figure('Name', 'Task 3 Speeds Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+subplot(2,1,1); plot(sim_time_s, V_a'); title('Speeds - Start (a) (r=0, VSL=60)'); ylabel('[km/h]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
+subplot(2,1,2); plot(sim_time_s, V_b'); title('Speeds - Start (b) (r=1, VSL=120)'); ylabel('[km/h]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
 
-% Densities 3a
-figure('Name', 'Task 3a Densities Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
-subplot(2,1,1); plot(sim_time_s, Rho_a'); title('Densities - Start 1 (r=0, VSL=60)'); ylabel('[veh/km/lane]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
-subplot(2,1,2); plot(sim_time_s, Rho_b'); title('Densities - Start 2 (r=1, VSL=120)'); ylabel('[veh/km/lane]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
+% Densities 3
+figure('Name', 'Task 3 Densities Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+subplot(2,1,1); plot(sim_time_s, Rho_a'); title('Densities - Start (a) (r=0, VSL=60)'); ylabel('[veh/km/lane]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
+subplot(2,1,2); plot(sim_time_s, Rho_b'); title('Densities - Start (b) (r=1, VSL=120)'); ylabel('[veh/km/lane]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
 
-% Queue 3a
-figure('Name', 'Task 3a Queue Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
-plot(sim_time_s, Wr_a, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1 (r=0, VSL=60)');
+% Queue 3
+figure('Name', 'Task 3 Queue Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+plot(sim_time_s, Wr_a, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start (a) (r=0, VSL=60)');
 hold on;
-plot(sim_time_s, Wr_b, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2 (r=1, VSL=120)');
+plot(sim_time_s, Wr_b, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start (b) (r=1, VSL=120)');
 hold off;
-title('Queue Length Comparison - Task 3a');
+title('Queue Length Comparison - Task 3');
 xlabel('Time [s]');
 ylabel('Queue [veh]');
 xlim([0 1210]);
@@ -132,46 +137,46 @@ grid on;
 
 output_time_s = (1:120).*10;
 
-% Inputs 3a
-figure('Name', 'Task 3a Inputs Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+% Inputs 3
+figure('Name', 'Task 3 Inputs Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 subplot(2,1,1);
-stairs(output_time_s, r_a, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1'); hold on;
-stairs(output_time_s, r_b, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2'); hold off;
+stairs(output_time_s, r_a, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start (a)'); hold on;
+stairs(output_time_s, r_b, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start (b)'); hold off;
 title('Ramp Metering Rate (Applied)'); ylabel('Rate'); ylim([-0.1 1.1]); xlim([0 1200]); grid on; legend('show');
 subplot(2,1,2);
-stairs(output_time_s, VSL_a, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1'); hold on;
-stairs(output_time_s, VSL_b, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2'); hold off;
+stairs(output_time_s, VSL_a, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start (a)'); hold on;
+stairs(output_time_s, VSL_b, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start (b)'); hold off;
 title('Variable Speed Limit (Applied)'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on; legend('show');
 
 
-% Task 3b Comparison (Different Starting Points, Increased Inflow)
-fprintf('Plotting Task 3b comparison (Start 1 vs Start 2)\n');
+%% Task 3_ext Comparison (Different Starting Points, Increased Inflow)
+fprintf('Plotting Task 3_ext comparison (Start 1 vs Start 2)\n');
 
-% Speeds 3b
-figure('Name', 'Task 3b Speeds Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
-subplot(2,1,1); plot(sim_time_s, V_a1'); title('Speeds - Start 1 (r=0, VSL=60), Increased Inflow'); ylabel('[km/h]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
-subplot(2,1,2); plot(sim_time_s, V_b1'); title('Speeds - Start 2 (r=1, VSL=120), Increased Inflow'); ylabel('[km/h]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
+% Speeds 3_ext
+figure('Name', 'Task 3_ext Speeds Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+subplot(2,1,1); plot(sim_time_s, V_a1'); title('Speeds - Start (a) (r=0, VSL=60), Increased Inflow'); ylabel('[km/h]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
+subplot(2,1,2); plot(sim_time_s, V_b1'); title('Speeds - Start (b) (r=1, VSL=120), Increased Inflow'); ylabel('[km/h]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
 
-% Densities 3b
-figure('Name', 'Task 3b Densities Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
-subplot(2,1,1); plot(sim_time_s, Rho_a1'); title('Densities - Start 1 (r=0, VSL=60), Increased Inflow'); ylabel('[veh/km/lane]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
-subplot(2,1,2); plot(sim_time_s, Rho_b1'); title('Densities - Start 2 (r=1, VSL=120), Increased Inflow'); ylabel('[veh/km/lane]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
+% Densities 3_ext
+figure('Name', 'Task 3_ext Densities Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+subplot(2,1,1); plot(sim_time_s, Rho_a1'); title('Densities - Start (a) (r=0, VSL=60), Increased Inflow'); ylabel('[veh/km/lane]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
+subplot(2,1,2); plot(sim_time_s, Rho_b1'); title('Densities - Start (b) (r=1, VSL=120), Increased Inflow'); ylabel('[veh/km/lane]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
 
-% Queue 3b
-figure('Name', 'Task 3b Queue Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
-plot(sim_time_s, Wr_a1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1 (r=0, VSL=60)');
+% Queue 3_ext
+figure('Name', 'Task 3_ext Queue Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+plot(sim_time_s, Wr_a1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start (a) (r=0, VSL=60)');
 hold on;
-plot(sim_time_s, Wr_b1, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2 (r=1, VSL=120)');
+plot(sim_time_s, Wr_b1, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start (b) (r=1, VSL=120)');
 hold off;
-title('Queue Length Comparison - Task 3b (Increased Inflow)');
+title('Queue Length Comparison - Task 3_ext (Increased Inflow)');
 xlabel('Time [s]');
 ylabel('Queue [veh]');
 xlim([0 1210]);
 legend('show');
 grid on;
 
-% Inputs 3b
-figure('Name', 'Task 3b Inputs Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+% Inputs 3_ext
+figure('Name', 'Task 3_ext Inputs Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 subplot(2,1,1);
 stairs(output_time_s, r_a1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1'); hold on;
 stairs(output_time_s, r_b1, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2'); hold off;
@@ -182,11 +187,10 @@ stairs(output_time_s, VSL_b1, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2')
 title('Variable Speed Limit (Applied) - Increased Inflow'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on; legend('show');
 
 %% Question 5 (part 1)
-VSL_i_a = VSL_a1; %120x1
-vsl_term = (1 + params.alpha) .* VSL_i_a;
+vsl_term = (1 + params.alpha) .* VSL_b;
 
-rho_k_seg2 = Rho_a1(2, 2:end); % 1x120 vector for k=1...120
-rho_k_seg3 = Rho_a1(3, 2:end); % 1x120 vector for k=1...120
+rho_k_seg2 = Rho_b(2, 2:end); % 1x120 vector for k=1...120
+rho_k_seg3 = Rho_b(3, 2:end); % 1x120 vector for k=1...120
 
 exp_term_seg2 = params.v_f .* exp(-(1/params.a) .* (rho_k_seg2 ./ params.rho_c).^params.a);
 exp_term_seg3 = params.v_f .* exp(-(1/params.a) .* (rho_k_seg3 ./ params.rho_c).^params.a);
@@ -216,9 +220,9 @@ hold off;
 
 %% Question 5 (part 2)
 
-r_k_vec = r_a1; 
-wr_k_vec = Wr_a1(1, 1:120)';
-rho5_k_vec = Rho_a1(5, 1:120)';
+r_k_vec = r_b; 
+wr_k_vec = Wr_b(1, 1:120)';
+rho5_k_vec = Rho_b(5, 1:120)';
 
 q_r5_term1_allowed = r_k_vec .* params.C_r;
 q_r5_term2_demand = params.D_r + wr_k_vec ./ params.T;

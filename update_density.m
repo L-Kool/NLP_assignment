@@ -6,7 +6,7 @@
 %   dims - dimensions
 %   k - time-step, needed to define q_i
 
-function rho_next = update_density(x_k, u_k, params, k)
+function rho_next = update_density(x_k, u_k, params, k, simType)
 
     % Unpacking the state vector 
     v_k = x_k(1:6);
@@ -18,9 +18,17 @@ function rho_next = update_density(x_k, u_k, params, k)
 
     % Defining initial flow entering
     if k < 60
-        q_0 = 3000 + 50 * params.E2;        
+        if simType == 0
+            q_0 = 3000 + 50 * params.E2;
+        elseif simType == 1
+            q_0 = (3000 + 50 * params.E2)*1.5;
+        end 
     else
-        q_0 = 1000 + 50 * params.E2;
+        if simType == 0
+            q_0 = 1000 + 50 * params.E2;
+        elseif simType == 1
+            q_0 = (1000 + 50 * params.E2) * 1.5;
+        end 
     end
 
     % Defining q_i, q_r_i
