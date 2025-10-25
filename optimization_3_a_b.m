@@ -93,11 +93,11 @@ time1_b = toc; % End timer
 % each case that returns us plots.
 
 % 0 --> condition (a)
-[state_a, output_a] = simulation(u_opt_a, x0, params, 0);
-[state_b, output_b] = simulation(u_opt_b, x0, params, 0);
+state_a = simulation(u_opt_a, x0, params, 0).stateHist;
+state_b = simulation(u_opt_b, x0, params, 0).stateHist;
 % 1 --> condition (b)
-[state1_a, output1_a] = simulation(u_opt1_a, x0, params, 1);
-[state1_b, output1_b] = simulation(u_opt1_b, x0, params, 1);
+state1_a = simulation(u_opt1_a, x0, params, 1).stateHist;
+state1_b = simulation(u_opt1_b, x0, params, 1).stateHist;
 
 % Extract relevant states
 [V_a, Rho_a, Wr_a, r_a, VSL_a] = extract_data(state_a, u_opt_a);
@@ -251,3 +251,13 @@ xlabel('Time [s]', 'FontSize', 14);
 ylabel('Flow [veh/h]', 'FontSize', 14);
 legend('show', 'FontSize', 14); grid on;
 hold off;
+
+%% Determining weights (for Task 5)
+% Extract cost terms
+J_TTS_3 = CostFunctionQ5(u_opt_a, x0, params, 0, 0, 0).J_TTS;
+J_vsl_3 = CostFunctionQ5(u_opt_a, x0, params, 0, 0, 0).J_vsl;
+J_ramp_3 = CostFunctionQ5(u_opt_a, x0, params, 0, 0, 0).J_ramp;
+W_vsl = J_TTS_3 / J_vsl_3;
+W_ramp = J_TTS_3 / J_ramp_3;
+fprintf('\nWeight for VSL term, W_{vsl} = %d\n', W_vsl);
+fprintf('Weight for VSL term, W_{ramp} = %d\n', W_ramp);
