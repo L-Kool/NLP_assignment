@@ -44,7 +44,7 @@ for k = 1:sim_steps
     w_r_next = update_wr(state_current, u_control_current, params);
 
     state(:, k+1) = [v_next ; rho_next ; w_r_next];
-    output(k+1) = params.T * state(13,k) + params.T * params.L * params.lambda * sum(state(7:12, k));
+    output(k) = params.T * state(13,k) + params.T * params.L * params.lambda * sum(state(7:12, k));
        
     if k == sim_steps
         output(k + 1) = params.T * state(13,k + 1) + params.T * params.L * params.lambda * sum(state(7:12, k + 1));

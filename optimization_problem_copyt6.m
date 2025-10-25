@@ -207,73 +207,113 @@ figure('Name', 'Output Comparison - 3b', 'Units', 'pixels', 'Position', [100, 10
 plot(sim_time_s, output_b_1); hold on; plot(sim_time_s, output_b_2); title('TTS over time Comparison'); ylabel('[veh*h]'); xlim([0 1210]); grid on; legend('Start 1', 'Start 2');
 
 %% Task. 6
+clc
 % Constraint on w_r
 W_max_initial = (23 + E1 / 6);
 W_max_current = W_max_initial;
 
 % Define Nonlinear Constraint Handle
-nonlcon = @(u) T6_NonLinCon(u, x0, W_max_current);
+nonlcon = @(u) T6_NonLinCon(u, x0, W_max_current); % Update W_max in handle
 
 % Run Optimization Loop (Handles feasibility adjustments)
-max_attempts = 10; % Limit attempts to find feasible W_max
-for attempt = 1:max_attempts
-    fprintf('\n--- Running Optimization Attempt %d with W_max = %.2f ---\n', attempt, W_max_current);
-    nonlcon = @(u) T6_NonLinCon(u, x0, W_max_current); % Update W_max in handle
-    tic;
-    [u_opt_t6, J_opt_t6, exitflag_t6, output_t6] = fmincon(f_b, u_control0_1, [], [], [], [], lb, ub, nonlcon, options);
-    time_t6 = toc;
+maxAttempts = 200;
+increaseCounter = 0;
+decreaseCounter = 0;
 
-    fprintf('--- Optimization Results (Attempt %d) ---\n', attempt);
-    fprintf('Optimal TTS (J_opt_t6): %.4f\n', J_opt_t6);
-    fprintf('Computation Time: %.2f seconds\n', time_t6);
-    fprintf('Exit Flag: %d\n', exitflag_t6);
-    disp(output_t6);
+for attempt = 1:maxAttempts
+nonlcon = @(u) T6_NonLinCon(u, x0, W_max_current); % Update W_max in handle
+[u_opt_t6, J_opt_t6, exitflag_t6, out_t6] = fmincon(f_b, u_control0_1, [], [], [], [], lb, ub, nonlcon, options);
 
-    % --- Check Feasibility and Adjust W_max if needed ---
-    if exitflag_t6 > 0 || exitflag_t6 == 0 % Converged or hit iteration limit (check constraints)
-        disp('Optimization finished. Simulating final solution to check constraint activity...');
-        [X_hist_opt, ~] = simulation_for_plots(u_opt_t6, x0);
-        max_Wr_achieved = max(X_hist_opt(13, 2:end)); % Max queue from k=1 onwards
-        fprintf('Maximum queue length achieved: %.2f\n', max_Wr_achieved);
 
-        constraint_tolerance = options.ConstraintTolerance; % Use the same tolerance
-        if max_Wr_achieved > W_max_current + constraint_tolerance
-             warning('Solver reported success/limit but constraints seem violated (Max Wr=%.2f > Wmax=%.2f). Check tolerances or simulation consistency.', max_Wr_achieved, W_max_current);
-             % Decide whether to trust the solver or increase W_max anyway.
-             % Let's increase W_max slightly and retry if violation is significant
-             if max_Wr_achieved > W_max_current * 1.01 % If violation > 1%
-                 disp('Significant constraint violation detected. Increasing W_max...');
-                 W_max_current = W_max_current * 1.10; % Increase by 10%
-                 u_control0 = u_opt_t6; % Use last result as new guess
-                 continue; % Try again with larger W_max
-             else
-                 disp('Minor constraint violation likely due to tolerances. Accepting solution.');
-                 break; % Acceptable solution found
-             end
-        elseif W_max_current - max_Wr_achieved > 0.1 * W_max_current % Constraint not active (more than 10% slack)
-            disp('Constraint is feasible but not active. Decreasing W_max by 10%...');
-            W_max_current = W_max_current * 0.90;
-            u_control0 = u_opt_t6; % Use last result as new guess
-            % Optional: Add a lower bound check for W_max_current if needed
-        else % Feasible and active or close to active
-            disp('Constraint is feasible and active (or nearly active). Solution accepted.');
-            break; % Solution found
-        end
-
-    elseif exitflag_t6 == -2 % Infeasible
-        disp('Problem reported as infeasible. Increasing W_max by 10%...');
-        W_max_current = W_max_current * 1.10;
-        % Keep the same initial guess u_control0 or potentially reset
-    else % Other negative exit flag (solver failure, etc.)
-        warning('Optimization failed with exitflag %d. Stopping adjustment loop.', exitflag_t6);
-        break; % Stop if solver failed unexpectedly
+% Check if optimization is feasible
+    if exitflag_t6 > 0 || exitflag_t6 == 0
+        % Optimization is feasible
+        % Run the simulation to find w_r relative to optimal point found
+            [state_t6, ~] = simulation_var_b_for_plots(u_opt_t6, x0);
+            % Find max w_r of such state
+            max_Wr_achieved = max(state_t6(13,:));
+            % If the error between the max w_r value and the W_max set is
+            % less than the constraint tolerance
+            if max_Wr_achieved > W_max_current + 1e-6
+                % The optimizer reported an optimum point that violates the
+                % constraints
+                if max_Wr_achieved > W_max_current * 1.01 % If violation > 1%
+                    % The constraint was violated. Increase w_max
+                    W_max_current = W_max_current * 1.10;
+                    increaseCounter = increaseCounter + 1;
+                else
+                    % Solution acceptable. Minor constraint violation
+                    % likely due to tolerances.
+                    break
+                end
+            elseif W_max_current - max_Wr_achieved > 0.1 * W_max_current
+                % Constraint not active (more than 10% slack)
+                W_max_current = W_max_current * 0.90;
+                decreaseCounter = decreaseCounter + 1;
+            else
+                break % Solution feasible
+            end
+            if abs(max_Wr_achieved - W_max_current) < 1e-6
+                % The constraint was active, exit the loop
+                break
+            else % The constraint was not active, reduce the W_max of 10%
+                W_max_current = W_max_current * 0.9;
+                decreaseCounter = decreaseCounter + 1;
+            end
+        break
+    elseif exitflag_t6 == -2
+        W_max_current = W_max_current * 1.1;
+        increaseCounter = increaseCounter + 1;
     end
+end
+%% Start with initial guess 2
+W_max_current_b = W_max_initial;
+for attempt = 1:maxAttempts
+nonlcon = @(u) T6_NonLinCon(u, x0, W_max_current); % Update W_max in handle
+tic;
+[u_opt_t6_b, J_opt_t6_b, exitflag_t6_b, out_t6_b] = fmincon(f_b, u_control0_2, [], [], [], [], lb, ub, nonlcon, options);
+time_t6_b = toc;
 
-    if attempt == max_attempts
-        warning('Maximum attempts reached. Final W_max = %.2f. Check results carefully.', W_max_current);
+% Check if optimization is feasible
+    if exitflag_t6_b > 0 || exitflag_t6_b == 0
+        % Optimization is feasible
+        % Run the simulation to find w_r relative to optimal point found
+            [state_t6_b, ~] = simulation_var_b_for_plots(u_opt_t6_b, x0);
+            % Find max w_r of such state
+            max_Wr_achieved_b = max(state_t6_b(13,:));
+            % If the error between the max w_r value and the W_max set is
+            % less than the constraint tolerance
+            if max_Wr_achieved_b > W_max_current_b + 1e-6
+                % The optimizer reported an optimum point that violates the
+                % constraints
+                if max_Wr_achieved_b > W_max_current_b * 1.01 % If violation > 1%
+                    % The constraint was violated. Increase w_max
+                    W_max_current_b = W_max_current_b * 1.10;
+                else
+                    % Solution acceptable. Minor constraint violation
+                    % likely due to tolerances.
+                    break
+                end
+            elseif W_max_current_b - max_Wr_achieved_b > 0.1 * W_max_current_b
+                % Constraint not active (more than 10% slack)
+                W_max_current_b = W_max_current_b * 0.90;
+            else
+                break % Solution feasible
+            end
+            if abs(max_Wr_achieved_b - W_max_current_b) < 1e-6
+                % The constraint was active, exit the loop
+                break
+            else % The constraint was not active, reduce the W_max of 10%
+                W_max_current_b = W_max_current_b * 0.9;
+            end
+        break
+    elseif exitflag_t6_b == -2
+        W_max_current_b = W_max_current_b * 1.1;
     end
-end % End adjustment loop
-%%
+end
+%% Optimal solution plot
+% It turns out that with starting point 2, no solution is found even after
+% 200 attempts. We only plot the solution found from starting point 1.
 [state_t6, output_t6] = simulation_var_b_for_plots(u_opt_t6, x0);
 [V_t6, Rho_t6, Wr_t6, r_t6, VSL_t6] = extract_data(state_t6, u_opt_t6);
 cumTTS_t6 = sum(output_t6);
@@ -293,25 +333,27 @@ figure('Name', 'Densities Comparison - 3b (Increased Inflow)', 'Units', 'pixels'
 plot(sim_time_s, Rho_t6'); title('Densities - Start 1 (r=0, VSL=60)'); ylabel('[veh/km/lane]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
 
 % Queue 3b
+W_max_plot = W_max_current * ones(1, 121);
 figure('Name', 'Queue Comparison  - 3b (Increased Inflow)', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 plot(sim_time_s, Wr_t6, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1 (r=0, VSL=60)');
 hold on;
+plot(sim_time_s, W_max_plot, 'r--', 'LineWidth', 1, 'DisplayName', 'Start 1 (r=0, VSL=60)');
 title('Queue Length Comparison - Task 3b (Increased Inflow)');
 xlabel('Time [s]');
 ylabel('Queue [veh]');
 xlim([0 1210]);
-legend('show');
+legend('w_r', 'w_r_{max}')
 grid on;
 
 % Inputs 3b
 figure('Name', 'Inputs Comparison  - 3b (Increased Inflow)', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 subplot(2,1,1);
 stairs(output_time_s, r_t6, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1'); hold on;
-title('Ramp Metering Rate (Applied) - Increased Inflow'); ylabel('Rate'); ylim([-0.1 1.1]); xlim([0 1200]); grid on; legend('show');
+title('Ramp Metering Rate (Applied) - Increased Inflow'); ylabel('Rate'); ylim([-0.1 1.1]); xlim([0 1200]); grid on;
 subplot(2,1,2);
 stairs(output_time_s, VSL_t6, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1'); hold on;
-title('Variable Speed Limit (Applied) - Increased Inflow'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on; legend('show');
+title('Variable Speed Limit (Applied) - Increased Inflow'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on;
 
 % Outputs 3b
 figure('Name', 'Output Comparison - 3b', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
-plot(sim_time_s, output_t6); hold on; title('TTS over time Comparison'); ylabel('[veh*h]'); xlim([0 1210]); grid on; legend('Start 1', 'Start 2');
+plot(sim_time_s, output_t6); hold on; title('TTS over time Comparison'); ylabel('[veh*h]'); xlim([0 1210]); grid on;
