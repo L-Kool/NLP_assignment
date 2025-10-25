@@ -26,7 +26,8 @@ params.lambda = 2;          % number of lanes
 rho_0 = 25 * ones(6,1);
 v_0 = 80 * ones(6,1);
 w_r_0 = 0;
-x_0 = [v_0 ; rho_0 ; w_r_0];
+x_0 = [ v_0 ; rho_0; w_r_0];
+
 
 % Simulation setup
 sim_steps = 120;
