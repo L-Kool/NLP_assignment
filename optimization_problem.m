@@ -84,10 +84,15 @@ time2_b = toc; % End timer
 % For each given optimal control input, we run a new simulation again for
 % each case that returns us plots.
 
-state_a_1 = simulation_for_plots(u_opt1, x0);
-state_a_2 = simulation_for_plots(u_opt2, x0);
-state_b_1 = simulation_var_b_for_plots(u_opt1_b, x0);
-state_b_2 = simulation_var_b_for_plots(u_opt2_b, x0);
+[state_a_1, output_a_1] = simulation_for_plots(u_opt1, x0);
+[state_a_2, output_a_2] = simulation_for_plots(u_opt2, x0);
+[state_b_1, output_b_1] = simulation_var_b_for_plots(u_opt1_b, x0);
+[state_b_2, output_b_2] = simulation_var_b_for_plots(u_opt2_b, x0);
+
+cumTTS_a_1 = sum(output_a_1);
+cumTTS_a_2 = sum(output_a_2);
+cumTTS_b_1 = sum(output_b_1);
+cumTTS_b_2 = sum(output_b_2);
 
 function [V, Rho, Wr, r_sim, VSL_sim] = extract_data(state_hist, u_opt_vec)
     V = state_hist(1:6, :);             % Speed history [km/h]
@@ -115,7 +120,7 @@ num_segments = 6;
 
 segment_legends = arrayfun(@(i) sprintf('Seg %d', i), 1:num_segments, 'UniformOutput', false);
 
-sim_time_s = (1:121).*10;
+sim_time_s = (0:120).*10;
 
 % Speeds 3a
 figure('Name', 'Speeds Comparison - 3a', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
@@ -143,7 +148,7 @@ grid on;
 output_time_s = (1:120).*10;
 
 % Inputs 3a
-figure('Name', 'Inputs Comparison - 3b', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+figure('Name', 'Inputs Comparison - 3a', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 subplot(2,1,1);
 stairs(output_time_s, r_a1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1'); hold on;
 stairs(output_time_s, r_a2, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2'); hold off;
@@ -153,7 +158,11 @@ stairs(output_time_s, VSL_a1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1');
 stairs(output_time_s, VSL_a2, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2'); hold off;
 title('Applied Variable Speed Limit'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on; legend('show');
 
+% Outputs 3a
+figure('Name', 'Output Comparison - 3a', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+plot(sim_time_s, output_a_1); hold on; plot(sim_time_s, output_a_2); title('TTS over time Comparison'); ylabel('[veh*h]'); xlim([0 1210]); grid on; legend('Start 1', 'Start 2');
 
+%%
 % Task 3b Comparison (Different Starting Points, Increased Inflow)
 fprintf('Plotting Task 3b comparison (Start 1 vs Start 2)\n');
 
@@ -190,3 +199,7 @@ subplot(2,1,2);
 stairs(output_time_s, VSL_b1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1'); hold on;
 stairs(output_time_s, VSL_b2, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2'); hold off;
 title('Variable Speed Limit (Applied) - Increased Inflow'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on; legend('show');
+
+% Outputs 3b
+figure('Name', 'Output Comparison - 3b', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+plot(sim_time_s, output_b_1); hold on; plot(sim_time_s, output_b_2); title('TTS over time Comparison'); ylabel('[veh*h]'); xlim([0 1210]); grid on; legend('Start 1', 'Start 2');

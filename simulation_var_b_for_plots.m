@@ -1,4 +1,4 @@
-function returnState = simulation_var_b_for_plots(u, x_0)
+function [returnState, returnOutput] = simulation_var_b_for_plots(u, x_0)
 
 E1 = 5;
 E2 = 13;
@@ -45,7 +45,12 @@ for k = 1:sim_steps
 
     state(:, k+1) = [v_next ; rho_next ; w_r_next];
     output(k+1) = params.T * state(13,k) + params.T * params.L * params.lambda * sum(state(7:12, k));
+       
+    if k == sim_steps
+        output(k + 1) = params.T * state(13,k + 1) + params.T * params.L * params.lambda * sum(state(7:12, k + 1));
+    end
 end 
 
 returnState = state;
+returnOutput = output;
 end
