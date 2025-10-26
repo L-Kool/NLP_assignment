@@ -23,7 +23,7 @@ function rho_next = update_density(x_k, u_k, params, k, simType)
         elseif simType == 1
             q_0 = (3000 + 50 * params.E2)*1.5;
         end 
-    else
+    elseif k >= 60
         if simType == 0
             q_0 = 1000 + 50 * params.E2;
         elseif simType == 1

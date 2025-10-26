@@ -1,5 +1,5 @@
 %% Optimization problem Task 7
-close all; clear;
+close all;
 
 % Import parameters
 params = ImportParameters();
@@ -27,11 +27,11 @@ cost_Q7 = @(x) CostFunctionQ7(x, x0, params);
 % Defining options for the genetic algorithm
 options = optimoptions('ga', ...
     'Display', 'iter', ...
-    'PopulationSize', 200, ...  % Increase population for a better search
-    'MaxGenerations', 100, ...  % (Default is 100 * nvars, which is too long)
+    'PopulationSize', 200, ...  
+    'MaxGenerations', 100, ...  
     'CrossoverFraction', 0.8, ...
-    'PlotFcn', @gaplotbestf, ... % Show a plot of the best cost
-    'UseParallel', false);       % Set to false if you don't have the toolbox
+    'PlotFcn', @gaplotbestf, ... 
+    'UseParallel', false);       
 
 %% Running the optimization
 tic;
@@ -47,9 +47,8 @@ fprintf('Task 7 optimization complete. Time: %.2f s\n', time_7);
 fprintf('Optimal discrete TTS cost: %.4f\n', f_opt_7);
 
 %% Post-processing and plotting
-
-% The output 'x_opt_7' is a vector of integers. We must translate it
-% back to the real control values to get the final plots.
+% Output of optimization is set of integers which need to be mapped to
+% their respective control input values
 
 % Mappings of r and VSL
 r_map = [0.2, 0.4, 0.6, 0.8];
@@ -67,7 +66,9 @@ u_vsl_opt_7 = vsl_map(vsl_opt_indices)';
 u_opt_7 = [u_r_opt_7; u_vsl_opt_7]; 
 
 % Running the simulation to extract states
-stateHist_opt7 = simulation(u_opt_7, x0, params, 1).stateHist;
+simResults7 = simulation(u_opt_7, x0, params, 1);
+stateHist_opt7 = simResults7.stateHist;
+outputHist_opt7 = simResults7.outputHist;
 [V_opt_7, Rho_opt_7, Wr_opt_7, r_opt_7, VSL_opt_7] = extract_data(stateHist_opt7, u_opt_7);
 
 %% Plotting results (Task 8)
@@ -75,52 +76,113 @@ time_axis_s = (1:120) .* 10;
 sim_time_s = (1:121) .* 10;
 segment_legends = arrayfun(@(i) sprintf('Seg %d', i), 1:6, 'UniformOutput', false);
 
-% Optimal discrete ramp metering rate
+% Optimal discrete ramp metering rate compared to ones from 3.b
 close all
 figure('Name', 'Task 7: Optimal Discrete Control Inputs');
 subplot(2,1,1);
 stairs(time_axis_s, r_opt_7, 'b-', 'LineWidth', 2);
-title('Optimal Discrete Ramp Metering Rate');
-ylabel('Rate');
-ylim([-0.1 1.1]); % Set Y-axis to see discrete levels clearly
+hold on;
+stairs(time_axis_s, r_b, 'r--', 'LineWidth', 2);
+title('Optimal Discrete vs. Continuous Ramp Metering Rate', 'FontSize', 14);
+ylabel('Rate', 'FontSize', 14);
+ylim([-0.1 1.5]); 
 yticks([0, 0.2, 0.4, 0.6, 0.8, 1.0]);
+legend('Discrete control input (Task 7)', 'No control case (Task 3.b)', 'FontSize', 14);
 grid on;
 
-% Optimal VSL
+% Optimal discrete VSL compared to ones from 3.b
 subplot(2,1,2);
-stairs(time_axis_s, VSL_opt_7, 'r-', 'LineWidth', 2);
-title('Optimal Discrete Variable Speed Limit');
-ylabel('[km/h]'); xlabel('Time [s]');
-ylim([50 130]); % Set Y-axis to see discrete levels clearly
+stairs(time_axis_s, VSL_opt_7, 'b-', 'LineWidth', 2);
+hold on;
+stairs(time_axis_s, VSL_b, 'r--', 'LineWidth', 2);
+title('Optimal Discrete vs. Continuous Variable Speed Limit', 'FontSize', 14);
+ylabel('[km/h]', 'FontSize', 14); 
+xlabel('Time [s]', 'FontSize', 14);
+ylim([50 150]); 
 yticks([60, 80, 100, 120]);
+legend('Discrete control input (Task 7)', 'No control case (Task 3.b)', 'FontSize', 14);
 grid on;
 
-%% Plotting states
+%% Plotting states and compare to ones from 3.b
 close all
+
 % Speeds
 figure('Name', 'Task 7: Optimal States (Speeds)');
+subplot(2,1,1);
 plot(sim_time_s, V_opt_7'); 
-title('Speeds for the different segments', 'FontSize', 14); 
-ylabel('[km/h]'); xlabel('Time [s]', 'FontSize', 14);
+title('Speeds for the different segments using discrete control inputs', 'FontSize', 14); 
+ylabel('[km/h]', 'FontSize', 14); 
 xlim([0 1210]);
 grid on; 
 legend(segment_legends, 'Location','eastoutside', 'FontSize', 14);
 
+subplot(2,1,2)
+plot(sim_time_s, V_b);
+title('Speeds for the different segments in no control case', 'FontSize', 14); 
+ylabel('[km/h]','FontSize', 14); 
+xlabel('Time [s]', 'FontSize', 14);
+xlim([0 1210]);
+grid on; 
+legend(segment_legends, 'Location','eastoutside', 'FontSize', 14);
+
+
 % Densities
 figure('Name', 'Task 7: Optimal States (Densities)');
+subplot(2,1,1);
 plot(sim_time_s, Rho_opt_7'); 
-title('Densities for the different segments', 'FontSize', 14); 
-ylabel('[veh/km/lane]'); xlabel('Time [s]', 'FontSize', 14);
+title('Densities for the different segments using discrete control inputs', 'FontSize', 14); 
+ylabel('[veh/km/lane]', 'FontSize', 14);
 xlim([0 1210]); 
 grid on; 
 legend(segment_legends, 'Location','eastoutside', 'FontSize', 14);
 
+subplot(2,1,2);
+plot(sim_time_s, Rho_b);
+title('Densities for the different segments in no control case', 'FontSize', 14); 
+ylabel('[veh/km/lane]', 'FontSize', 14);
+xlabel('Time [s]', 'FontSize', 14);
+xlim([0 1210]); 
+grid on; 
+legend(segment_legends, 'Location','eastoutside', 'FontSize', 14);
+
+
 % Queue length
 figure('Name', 'Task 7: Optimal States (Queue)');
 plot(sim_time_s, Wr_opt_7, 'b-', 'LineWidth', 2);
-title('Queue Length for the different segments'); 
-xlabel('Time [s]'); ylabel('Queue [veh]');
+hold on
+plot(sim_time_s, Wr_b, 'LineWidth', 2);
+title('Queue Length for the different segments with discrete inputs vs. no contol case', 'FontSize', 14); 
+xlabel('Time [s]', 'FontSize', 14); 
+ylabel('Queue [veh]', 'FontSize', 14);
 xlim([0 1210]);
+legend('Discrete control inputs', 'No control case', 'FontSize', 14);
 grid on;
 
-%% TODO: ADD INSTANTANEOUS AND CUMULATIVE TTS VALUES
+%% Plotting instantaneous and cumulative TTS values
+close all
+instTTS_opt7 = outputHist_opt7;
+cumulativeTTS_opt7 = cumsum(instTTS_opt7);
+
+instTTS_no_control = output1_b;
+cumulativeTTS_no_control = cumsum(instTTS_no_control);
+
+figure()
+subplot(2,1,1)
+plot(sim_time_s, instTTS_opt7, 'LineWidth', 2);
+hold on;
+plot(sim_time_s, instTTS_no_control, 'LineWidth', 2);
+xlim([0 1210]);
+ylabel('Total Time Spent [veh h]', 'FontSize', 14);
+legend('With discrete inputs', 'No control case', 'FontSize', 14);
+title('Instantaneous TTS using discrete control inputs vs. no control case', 'FontSize', 14);
+
+
+subplot(2,1,2);
+plot(sim_time_s, cumulativeTTS_opt7, 'LineWidth', 2);
+hold on;
+plot(sim_time_s, cumulativeTTS_no_control, 'LineWidth', 2);
+xlim([0 1210]);
+ylabel('Total Time Spent [veh h]', 'FontSize', 14);
+xlabel('Time [s]', 'FontSize', 14); 
+legend('With discrete inputs', 'No control case', 'FontSize', 14);
+title('Cumulative TTS using discrete control inputs vs. no control case', 'FontSize', 14);

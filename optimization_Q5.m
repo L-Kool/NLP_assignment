@@ -1,4 +1,5 @@
 %% Optimization problem Question 5
+close all;
 
 % Importing parameters
 params = ImportParameters();

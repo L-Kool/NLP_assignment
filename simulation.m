@@ -24,6 +24,7 @@ output(1) = params.T * x_0(13) + params.T * params.L * params.lambda * sum(x_0(7
         state(:, k+1) = [v_next ; rho_next ; w_r_next];
         output(k) = params.T * state(13,k) + params.T * params.L * params.lambda * sum(state(7:12, k));
     
+        % Calculate the instantaneous TTS
         if k == sim_steps
         output(k+1) = params.T * state(13,k+1) + params.T * params.L * params.lambda * sum(state(7:12, k+1));
         end 

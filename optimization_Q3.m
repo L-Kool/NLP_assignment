@@ -77,11 +77,22 @@ time1_b = toc; % End timer
 % each case that returns us plots.
 
 % 0 --> condition (a)
-state_a = simulation(u_opt_a, x0, params, 0).stateHist;
-state_b = simulation(u_opt_b, x0, params, 0).stateHist;
+simResults_a = simulation(u_opt_a, x0, params, 0);
+state_a = simResults_a.stateHist;
+output_a = simResults_a.outputHist;
+
+simResults_b = simulation(u_opt_b, x0, params, 0);
+state_b = simResults_b.stateHist;
+output_b = simResults_b.outputHist;
+
 % 1 --> condition (b)
-state1_a = simulation(u_opt1_a, x0, params, 1).stateHist;
-state1_b = simulation(u_opt1_b, x0, params, 1).stateHist;
+simResults1_a = simulation(u_opt1_a, x0, params, 1);
+state1_a = simResults1_a.stateHist;
+output1_a = simResults1_a.outputHist;
+
+simResults1_b = simulation(u_opt1_b, x0, params, 1);
+state1_b = simResults1_b.stateHist;
+output1_b = simResults1_b.outputHist;
 
 % Extract relevant states
 [V_a, Rho_a, Wr_a, r_a, VSL_a] = extract_data(state_a, u_opt_a);
@@ -116,9 +127,9 @@ plot(sim_time_s, Wr_a, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start (a) (r=0, V
 hold on;
 plot(sim_time_s, Wr_b, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start (b) (r=1, VSL=120)');
 hold off;
-title('Queue Length Comparison - Task 3');
-xlabel('Time [s]');
-ylabel('Queue [veh]');
+title('Queue Length Comparison - Task 3', 'FontSize', 14);
+xlabel('Time [s]', 'FontSize', 14);
+ylabel('Queue [veh]', 'FontSize', 14);
 xlim([0 1210]);
 legend('show');
 grid on;
@@ -138,7 +149,6 @@ title('Variable Speed Limit (Applied)'); ylabel('[km/h]'); xlabel('Time [s]'); y
 
 
 %% Task 3_ext Comparison (Different Starting Points, Increased Inflow)
-fprintf('Plotting Task 3_{ext} comparison (Start 1 vs Start 2)\n');
 
 % Speeds 3_ext
 figure('Name', 'Task 3_{ext} Speeds Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
