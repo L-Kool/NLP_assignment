@@ -269,7 +269,7 @@ end
 %% Start with initial guess 2
 W_max_current_b = W_max_initial;
 for attempt = 1:maxAttempts
-nonlcon = @(u) T6_NonLinCon(u, x0, W_max_current); % Update W_max in handle
+nonlcon = @(u) T6_NonLinCon(u, x0, W_max_current_b); % Update W_max in handle
 tic;
 [u_opt_t6_b, J_opt_t6_b, exitflag_t6_b, out_t6_b] = fmincon(f_b, u_control0_2, [], [], [], [], lb, ub, nonlcon, options);
 time_t6_b = toc;
@@ -312,48 +312,66 @@ time_t6_b = toc;
     end
 end
 %% Optimal solution plot
-% It turns out that with starting point 2, no solution is found even after
-% 200 attempts. We only plot the solution found from starting point 1.
+
 [state_t6, output_t6] = simulation_var_b_for_plots(u_opt_t6, x0);
 [V_t6, Rho_t6, Wr_t6, r_t6, VSL_t6] = extract_data(state_t6, u_opt_t6);
 cumTTS_t6 = sum(output_t6);
 
-%% Plots T6
+[state_t6_2, output_t6_2] = simulation_var_b_for_plots(u_opt_t6_b, x0);
+[V_t6_2, Rho_t6_2, Wr_t6_2, r_t6_2, VSL_t6_2] = extract_data(state_t6_2, u_opt_t6_b);
+cumTTS_t6_2 = sum(output_t6_2);
 
+%% Plots T6
+close all
 num_segments = 6;
+
+W_max_current_plot = W_max_current * ones(121,1);
+W_max_current_b_plot = W_max_current_b * ones(121,1);
+W_max_initial_plot = W_max_initial * ones(121,1);
+
 
 segment_legends = arrayfun(@(i) sprintf('Seg %d', i), 1:num_segments, 'UniformOutput', false);
 
 % Speeds 3b
-figure('Name', 'Speeds Comparison - 3b (Increased Inflow)', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
-plot(sim_time_s, V_t6'); title('Speeds - Start 1 (r=0, VSL=60)'); ylabel('[km/h]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
+figure('Name', 'Speeds Comparison T6', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+subplot(2,1,1); plot(sim_time_s, V_t6'); title('Speeds - Start 1 (r=0, VSL=60)'); ylabel('[km/h]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
+subplot(2,1,2); plot(sim_time_s, V_t6_2'); title('Speeds - Start 2 (r=1, VSL=120)'); ylabel('[km/h]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside');
 
 % Densities 3b
-figure('Name', 'Densities Comparison - 3b (Increased Inflow)', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
-plot(sim_time_s, Rho_t6'); title('Densities - Start 1 (r=0, VSL=60)'); ylabel('[veh/km/lane]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
+figure('Name', 'Densities Comparison T6)', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+subplot(2,1,1); plot(sim_time_s, Rho_t6'); title('Densities - Start 1 (r=0, VSL=60)'); ylabel('[veh/km/lane]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
+subplot(2,1,2); plot(sim_time_s, Rho_t6_2'); title('Densities - Start 2 (r=1, VSL=120)'); ylabel('[veh/km/lane]'); xlabel('Time [s]'); xlim([0 1210]); grid on; legend(segment_legends, 'Location','eastoutside'); ylim([0, params.rho_m * 1.1]); hold on; plot(sim_time_s([1 end]), [params.rho_c params.rho_c], 'k--', 'DisplayName','\rho_c'); plot(sim_time_s([1 end]), [params.rho_m params.rho_m], 'r:', 'DisplayName','\rho_m'); hold off;
 
 % Queue 3b
-W_max_plot = W_max_current * ones(1, 121);
-figure('Name', 'Queue Comparison  - 3b (Increased Inflow)', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+figure('Name', 'Queue Comparison T6', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 plot(sim_time_s, Wr_t6, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1 (r=0, VSL=60)');
 hold on;
-plot(sim_time_s, W_max_plot, 'r--', 'LineWidth', 1, 'DisplayName', 'Start 1 (r=0, VSL=60)');
-title('Queue Length Comparison - Task 3b (Increased Inflow)');
+plot(sim_time_s, Wr_t6_2, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2 (r=1, VSL=120)');
+hold on;
+plot(sim_time_s, W_max_current_plot, 'k:', 'LineWidth', 1.5, 'DisplayName', 'W_{max(1)}');
+hold on;
+plot(sim_time_s, W_max_current_b_plot, 'm:', 'LineWidth', 1.5, 'DisplayName', 'W_{max(2)}');
+hold on;
+plot(sim_time_s, W_max_initial_plot, 'g:', 'LineWidth', 1.5, 'DisplayName', 'W_{max} (initial)');
+hold off;
+title('Queue Length Comparison');
 xlabel('Time [s]');
 ylabel('Queue [veh]');
 xlim([0 1210]);
-legend('w_r', 'w_r_{max}')
+legend('show');
 grid on;
 
 % Inputs 3b
-figure('Name', 'Inputs Comparison  - 3b (Increased Inflow)', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+figure('Name', 'Inputs Comparison  T6', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
 subplot(2,1,1);
 stairs(output_time_s, r_t6, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1'); hold on;
-title('Ramp Metering Rate (Applied) - Increased Inflow'); ylabel('Rate'); ylim([-0.1 1.1]); xlim([0 1200]); grid on;
+stairs(output_time_s, r_t6_2, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2'); hold off;
+title('Ramp Metering Rate (Applied)'); ylabel('Rate'); ylim([-0.1 1.1]); xlim([0 1200]); grid on; legend('show');
 subplot(2,1,2);
 stairs(output_time_s, VSL_t6, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start 1'); hold on;
-title('Variable Speed Limit (Applied) - Increased Inflow'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on;
+stairs(output_time_s, VSL_t6_2, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start 2'); hold off;
+title('Variable Speed Limit (Applied)'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on; legend('show');
 
 % Outputs 3b
-figure('Name', 'Output Comparison - 3b', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
-plot(sim_time_s, output_t6); hold on; title('TTS over time Comparison'); ylabel('[veh*h]'); xlim([0 1210]); grid on;
+figure('Name', 'Output Comparison T6', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
+plot(sim_time_s, output_t6); hold on; plot(sim_time_s, output_t6_2); title('TTS over time Comparison'); ylabel('[veh*h]'); xlim([0 1210]); grid on; legend('Start 1', 'Start 2');
