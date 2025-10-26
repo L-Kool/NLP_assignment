@@ -1,4 +1,4 @@
-function simResults = simulation(u, x_0, params, simType)
+function simResults = simulation(u, x0, params, simType)
 
 % Control signal
 u = [u(1:20)' 
@@ -8,9 +8,9 @@ sim_steps = 120;
 
 % State init
 state = zeros(13, sim_steps + 1);
-state(:, 1) = x_0;  
+state(:, 1) = x0;  
 output = zeros(sim_steps + 1, 1);
-output(1) = params.T * x_0(13) + params.T * params.L * params.lambda * sum(x_0(7:12));
+output(1) = params.T * x0(13) + params.T * params.L * params.lambda * sum(x0(7:12));
     
     % Simulation
     for k = 1:sim_steps
