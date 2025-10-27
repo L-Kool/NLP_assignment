@@ -1,4 +1,4 @@
-%% Optimization problem Task 3a
+%% Optimization problem Task 3
 close all; clear;
 
 % Importing parameters
@@ -24,8 +24,8 @@ x0 = [v_0 ; rho_0 ; w_r_0];
 options = optimoptions('fmincon', ...
     'Algorithm', 'sqp', ...          % Use Sequential Quadratic Programming
     'Display', 'iter', ...           % Show output for each iteration
-    'MaxFunctionEvaluations', 50000, ... % Increase limit (simulation is expensive)
-    'MaxIterations', 400, ...        % Default is 400, might need more
+    'MaxFunctionEvaluations', 50000, ... 
+    'MaxIterations', 400, ...        % Default 
     'OptimalityTolerance', 1e-6, ... % Default
     'StepTolerance', 1e-6, ...       % Default
     'ConstraintTolerance', 1e-6);    % Default
@@ -38,26 +38,32 @@ u_control0_a = [zeros(Nc, 1); 60 * ones(Nc, 1)];
 % B. Ramp fully open (r=1), Max speed limit (VSL=120) - "No Control"
 u_control0_b = [ones(Nc, 1); 120 * ones(Nc, 1)];
 
-%% Question 3.a, 3.b 
-
 % Objective function
 totTTS = @(u) simulation(u, x0, params, 0).totalTTS;
 
+%% Task 3.a
+
 %% Optimization for starting point (a)
-tic; % Start timer
+tic; 
 [u_opt_a, f_opt_a, exitflag_a, output_opt_a] = fmincon(totTTS, u_control0_a, [], [], [], [], lb, ub, [], options);
-time_a = toc; % End timer
-% Print the cost function from the optimization
+time_a = toc; 
+
+% Print the results of the optimization
 fprintf('Exit flag of optimization 3 for starting point(a): %d\n', exitflag_a)
 fprintf('Optimization time for starting point (a): %.4f\n', time_a)
 fprintf('Optimal cost function value for starting point (a): %.4f\n', f_opt_a)
 
 %% Optimization for starting point (b)
-tic; % Start timer
+tic; 
 [u_opt_b, f_opt_b, exitflag_b, output_opt_b] = fmincon(totTTS, u_control0_b, [], [], [], [], lb, ub, [], options);
-time_b = toc; % End timer
+time_b = toc;
 
-%% Question 3.a, 3.b with q_0(k) 50% higher
+% Print the results of the optimization
+fprintf('Exit flag of optimization 3 for starting point(b): %d\n', exitflag_b)
+fprintf('Optimization time for starting point (b): %.4f\n', time_b)
+fprintf('Optimal cost function value for starting point (b): %.4f\n', f_opt_b)
+
+%% Task 3.b, with q_0(k) 50% higher
 
 % Objective function
 totTTS_1 = @(u) simulation(u, x0, params, 1).totalTTS;
@@ -95,20 +101,18 @@ state1_b = simResults1_b.stateHist;
 output1_b = simResults1_b.outputHist;
 
 % Extract relevant states
-[V_a, Rho_a, Wr_a, r_a, VSL_a] = extract_data(state_a, u_opt_a);
-[V_b, Rho_b, Wr_b, r_b, VSL_b] = extract_data(state_b, u_opt_b);
-[V_a1, Rho_a1, Wr_a1, r_a1, VSL_a1] = extract_data(state1_a, u_opt1_a);
-[V_b1, Rho_b1, Wr_b1, r_b1, VSL_b1] = extract_data(state1_b, u_opt1_b);
+[V_a, Rho_a, Wr_a, r_a, VSL_a] = ExtractData(state_a, u_opt_a);
+[V_b, Rho_b, Wr_b, r_b, VSL_b] = ExtractData(state_b, u_opt_b);
+[V_a1, Rho_a1, Wr_a1, r_a1, VSL_a1] = ExtractData(state1_a, u_opt1_a);
+[V_b1, Rho_b1, Wr_b1, r_b1, VSL_b1] = ExtractData(state1_b, u_opt1_b);
 
 
 
 %% Plotting
 % Task 3 Comparison (Different Starting Points, Original Inflow)
-fprintf('Plotting Task 3 comparison (Start (a) vs Start (b))\n');
+
 num_segments = 6;
-
 segment_legends = arrayfun(@(i) sprintf('Seg %d', i), 1:num_segments, 'UniformOutput', false);
-
 sim_time_s = (1:121).*10;
 
 % Speeds 3
@@ -148,7 +152,7 @@ stairs(output_time_s, VSL_b, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start (b)'
 title('Variable Speed Limit (Applied)'); ylabel('[km/h]'); xlabel('Time [s]'); ylim([50 130]); xlim([0 1200]); grid on; legend('show');
 
 
-%% Task 3_ext Comparison (Different Starting Points, Increased Inflow)
+%% Task 3.b Comparison (Different Starting Points, Increased Inflow)
 
 % Speeds 3_ext
 figure('Name', 'Task 3_{ext} Speeds Comparison', 'Units', 'pixels', 'Position', [100, 100, 1600, 800]);
@@ -166,7 +170,7 @@ plot(sim_time_s, Wr_a1, 'b-', 'LineWidth', 1.5, 'DisplayName', 'Start (a) (r=0, 
 hold on;
 plot(sim_time_s, Wr_b1, 'r--', 'LineWidth', 1.5, 'DisplayName', 'Start (b) (r=1, VSL=120)');
 hold off;
-title('Queue Length Comparison - Task 3_ext (Increased Inflow)');
+title('Queue Length Comparison - Task 3.b (Increased Inflow)');
 xlabel('Time [s]');
 ylabel('Queue [veh]');
 xlim([0 1210]);

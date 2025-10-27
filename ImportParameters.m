@@ -1,5 +1,7 @@
 function params = ImportParameters()
-    % Defining parameters
+% This function defines all the parameters, allowing them to easily be
+% imported for each problem
+
     params.E1 = 5;
     params.E2 = 13;
     params.E3 = 6;

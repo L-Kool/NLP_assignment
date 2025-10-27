@@ -1,4 +1,4 @@
-%% Optimization problem Task 3a
+%% Optimization problem Task 6
 
 % Importing parameters
 params = ImportParameters();
@@ -39,15 +39,14 @@ W_max_current = W_max_initial;
 % Defining the objective function
 f_6 = @(u) simulation(u, x0, params, 1).totalTTS;
 
-% Define Nonlinear Constraint Handle
-nonlcon = @(u) T6_NonLinCon(u, x0, params, W_max_current); % Update W_max in handle
+% Defining nonlinear constraint handle
+nonlcon = @(u) T6_NonLinCon(u, x0, params, W_max_current); 
 
-% Options for optimization algorithm
-
+% Options for optimization algorithm using SQP
 options = optimoptions('fmincon', ...
-    'Algorithm', 'sqp', ...         % Use SQP
-    'Display', 'final', ...           % default
-    'MaxFunctionEvaluations', 50000, ... % Increase limit
+    'Algorithm', 'sqp', ...         
+    'Display', 'final', ...          
+    'MaxFunctionEvaluations', 50000, ... 
     'MaxIterations', 400, ...        % Default
     'OptimalityTolerance', 1e-6, ... % Default
     'StepTolerance', 1e-6, ...       % Default
@@ -59,24 +58,30 @@ maxAttempts = 200;
 increaseCounter = 0;
 decreaseCounter = 0;
 
+tic;
 for attempt = 1:maxAttempts
-nonlcon = @(u) T6_NonLinCon(u, x0, params, W_max_current); % Update W_max in handle
+
+% Update W_max in handle
+nonlcon = @(u) T6_NonLinCon(u, x0, params, W_max_current); 
 [u_opt_t6, J_opt_t6, exitflag_t6, out_t6] = fmincon(f_6, u_control0_1, [], [], [], [], lb, ub, nonlcon, options);
 
 
 % Check if optimization is feasible
     if exitflag_t6 > 0 || exitflag_t6 == 0
+
         % Optimization is feasible
         % Run the simulation to find w_r relative to optimal point found
             state_t6 = simulation(u_opt_t6, x0, params, 1).stateHist;
-            % Find max w_r of such state
+
+            % Find max w_r 
             max_Wr_achieved = max(state_t6(13,:));
+
             % If the error between the max w_r value and the W_max set is
             % less than the constraint tolerance
             if max_Wr_achieved > W_max_current + 1e-6
-                % The optimizer reported an optimum point that violates the
-                % constraints
-                if max_Wr_achieved > W_max_current * 1.01 % If violation > 1%
+
+                % The constraints are violated by more than 1%
+                if max_Wr_achieved > W_max_current * 1.01 
                     % The constraint was violated. Increase w_max
                     W_max_current = W_max_current * 1.10;
                     increaseCounter = increaseCounter + 1;
@@ -85,12 +90,13 @@ nonlcon = @(u) T6_NonLinCon(u, x0, params, W_max_current); % Update W_max in han
                     % likely due to tolerances.
                     break
                 end
+
             elseif W_max_current - max_Wr_achieved > 0.1 * W_max_current
                 % Constraint not active (more than 10% slack)
                 W_max_current = W_max_current * 0.90;
                 decreaseCounter = decreaseCounter + 1;
             else
-                break % Solution feasible
+                break % Feasible solution found
             end
             if abs(max_Wr_achieved - W_max_current) < 1e-6
                 % The constraint was active, exit the loop
@@ -105,29 +111,34 @@ nonlcon = @(u) T6_NonLinCon(u, x0, params, W_max_current); % Update W_max in han
         increaseCounter = increaseCounter + 1;
     end
 end
-
+time_t6_a = toc;
 
 %% Start with initial guess 2
 W_max_current_b = W_max_initial;
+
+
+tic;
 for attempt = 1:maxAttempts
 nonlcon = @(u) T6_NonLinCon(u, x0, params, W_max_current_b); % Update W_max in handle
-tic;
+
 [u_opt_t6_b, J_opt_t6_b, exitflag_t6_b, out_t6_b] = fmincon(f_6, u_control0_2, [], [], [], [], lb, ub, nonlcon, options);
-time_t6_b = toc;
 
 % Check if optimization is feasible
     if exitflag_t6_b > 0 || exitflag_t6_b == 0
+
         % Optimization is feasible
         % Run the simulation to find w_r relative to optimal point found
             state_t6_b = simulation(u_opt_t6_b, x0, params, 1).stateHist;
-            % Find max w_r of such state
+
+            % Find max w_r 
             max_Wr_achieved_b = max(state_t6_b(13,:));
+
             % If the error between the max w_r value and the W_max set is
             % less than the constraint tolerance
             if max_Wr_achieved_b > W_max_current_b + 1e-6
-                % The optimizer reported an optimum point that violates the
-                % constraints
-                if max_Wr_achieved_b > W_max_current_b * 1.01 % If violation > 1%
+
+                % The constraint is violated by more than 1%
+                if max_Wr_achieved_b > W_max_current_b * 1.01 
                     % The constraint was violated. Increase w_max
                     W_max_current_b = W_max_current_b * 1.10;
                 else
@@ -152,7 +163,7 @@ time_t6_b = toc;
         W_max_current_b = W_max_current_b * 1.1;
     end
 end
-
+time_t6_b = toc;
 
 %% Post-processing data
 

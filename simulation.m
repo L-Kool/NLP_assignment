@@ -1,4 +1,8 @@
 function simResults = simulation(u, x0, params, simType)
+% This function runs the simulation for 120 steps and returns:
+%   - the state history
+%   - the output history
+%   - the cumulative TTS
 
 % Control signal
 u = [u(1:20)' 

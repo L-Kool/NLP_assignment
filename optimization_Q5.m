@@ -83,12 +83,15 @@ ylabel('Flow [veh/h]', 'FontSize', 14);
 legend('show', 'FontSize', 14); grid on;
 hold off;
 
-%% Determining weights
-% Extract cost terms
+%% Determining weights for multi-objective optimization
+
+% Extracting cost terms from results of Task 3.a
 costTerms3 = CostFunctionQ5(u_opt_a, x0, params, 0, 0, 0);
 J_TTS_3 = costTerms3.J_TTS;
 J_vsl_3 = costTerms3.J_vsl;
 J_ramp_3 = costTerms3.J_ramp;
+
+% Calculating weights
 W_vsl = J_TTS_3 / J_vsl_3;
 W_ramp = J_TTS_3 / J_ramp_3;
 fprintf('\nWeight for VSL term, W_{vsl} = %d\n', W_vsl);
@@ -103,12 +106,12 @@ options = optimoptions('fmincon', ...
     'Algorithm', 'sqp', ...          % Use Sequential Quadratic Programming
     'Display', 'iter', ...           % Show output for each iteration
     'MaxFunctionEvaluations', 50000, ... 
-    'MaxIterations', 600, ...        % Put to 500 for Q5
+    'MaxIterations', 600, ...        
     'OptimalityTolerance', 1e-4, ... % Reduced from 1e-6
     'StepTolerance', 1e-4, ...       % Reduced from 1e-6
     'ConstraintTolerance', 1e-6);    % Default
 
-% Run optimization_3_a_b.m before to have u_opt_a in workspace for warm start
+% Run optimizationQ3.m before to have u_opt_a in workspace for warm start
 tic;
 [u_opt_5, f_opt_5, exitflag_5, output_5] = fmincon(costQ5, u_opt_a, [], [], [], [], lb, ub, [], options);
 time_5 = toc; 
